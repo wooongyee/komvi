@@ -1,5 +1,6 @@
 package io.github.wooongyee.komvi.core
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -65,4 +66,20 @@ interface MviContainer<S : ViewState, E : SideEffect> {
      * ```
      */
     fun intent(block: suspend IntentScope<S, E>.() -> Unit)
+}
+
+/**
+ * Creates a new [MviContainer] instance.
+ *
+ * @param initialState The initial state value
+ * @param scope The [CoroutineScope] for launching coroutines
+ * @param S The type of [ViewState]
+ * @param E The type of [SideEffect]
+ * @return A new [MviContainer] instance
+ */
+fun <S : ViewState, E : SideEffect> container(
+    initialState: S,
+    scope: CoroutineScope
+): MviContainer<S, E> {
+    return MviContainerImpl(initialState, scope)
 }
