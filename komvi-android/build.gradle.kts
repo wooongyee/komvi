@@ -1,6 +1,5 @@
 plugins {
     id("komvi.android.library")
-    id("komvi.publishing")
 }
 
 android {

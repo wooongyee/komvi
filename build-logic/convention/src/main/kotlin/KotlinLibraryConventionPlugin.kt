@@ -3,7 +3,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.configure
-import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 class KotlinLibraryConventionPlugin : Plugin<Project> {
@@ -19,7 +20,7 @@ class KotlinLibraryConventionPlugin : Plugin<Project> {
                 targetCompatibility = JavaVersion.VERSION_17
             }
 
-            extensions.configure<KotlinProjectExtension> {
+            tasks.withType<KotlinCompile>().configureEach {
                 compilerOptions {
                     jvmTarget.set(JvmTarget.JVM_17)
                 }

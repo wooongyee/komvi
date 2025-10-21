@@ -1,24 +1,25 @@
-import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.gradle.LibraryExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
-class AndroidApplicationConventionPlugin : Plugin<Project> {
+class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             with(pluginManager) {
-                apply("com.android.application")
+                apply("com.android.library")
                 apply("org.jetbrains.kotlin.android")
             }
 
-            extensions.configure<ApplicationExtension> {
+            extensions.configure<LibraryExtension> {
                 compileSdk = property("android.compileSdk").toString().toInt()
 
                 defaultConfig {
                     minSdk = property("android.minSdk").toString().toInt()
-                    targetSdk = property("android.targetSdk").toString().toInt()
                     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+                    consumerProguardFiles("consumer-rules.pro")
                 }
 
                 buildTypes {
@@ -35,9 +36,11 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                     sourceCompatibility = JavaVersion.VERSION_17
                     targetCompatibility = JavaVersion.VERSION_17
                 }
+            }
 
-                kotlinOptions {
-                    jvmTarget = "17"
+            extensions.configure<KotlinAndroidProjectExtension> {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
                 }
             }
         }
