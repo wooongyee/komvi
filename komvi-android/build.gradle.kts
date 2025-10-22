@@ -7,5 +7,7 @@ android {
 }
 
 dependencies {
-
+    api(project(":komvi-core"))
+    api(libs.lifecycle.viewmodel.ktx)
+    api(libs.kotlinx.coroutines.android)
 }
