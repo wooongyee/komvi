@@ -1,4 +1,4 @@
-package io.github.wooongyee.buildlogic.android
+package io.github.wooongyee.komvi.android
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
