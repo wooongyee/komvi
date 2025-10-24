@@ -18,11 +18,14 @@ import io.github.wooongyee.komvi.core.container
  * @param I The type of intent that extends [Intent]
  * @param E The type of side effect that extends [SideEffect]
  * @param initialState The initial state of the view
+ * @param debugMode Enable debug logging for state changes (default: false)
  * @return A new [MviContainer] instance scoped to this ViewModel
  */
 fun <S : ViewState, I : Intent, E : SideEffect> ViewModel.container(
-    initialState: S
+    initialState: S,
+    debugMode: Boolean = false
 ): MviContainer<S, I, E> = container(
     initialState = initialState,
-    scope = viewModelScope
+    scope = viewModelScope,
+    debugMode = debugMode
 )

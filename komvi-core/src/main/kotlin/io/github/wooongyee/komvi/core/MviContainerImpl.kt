@@ -18,13 +18,15 @@ import kotlinx.coroutines.launch
  *
  * @param initialState The initial state value
  * @param scope The [CoroutineScope] for launching coroutines (typically viewModelScope)
+ * @param debugMode Enable debug logging for state changes
  * @param S The type of [ViewState]
  * @param I The type of [Intent]
  * @param E The type of [SideEffect]
  */
 internal class MviContainerImpl<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    internal val debugMode: Boolean = false
 ) : MviContainer<S, I, E> {
 
     private val _state = MutableStateFlow(initialState)

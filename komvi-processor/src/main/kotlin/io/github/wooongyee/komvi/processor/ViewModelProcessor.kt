@@ -61,18 +61,18 @@ class ViewModelProcessor(
         // 1. Validate handlers are private/internal
         validateHandlerVisibility(handlers)
 
-        // 2. Find associated Contract
-        val contractClass = findAssociatedContract(resolver, viewModelClass)
-        if (contractClass == null) {
-            logger.warn("Cannot find Contract for ViewModel: $className")
+        // 2. Find associated Intent
+        val intentClass = findAssociatedIntent(resolver, viewModelClass)
+        if (intentClass == null) {
+            logger.warn("Cannot find Intent for ViewModel: $className")
             return
         }
 
         // 3. Validate all Intents have handlers
-        validateAllIntentsHaveHandlers(contractClass, handlers)
+        validateAllIntentsHaveHandlers(intentClass, handlers)
 
         // 4. Generate dispatch function
-        generateDispatchFunction(viewModelClass, contractClass, handlers)
+        generateDispatchFunction(viewModelClass, intentClass, handlers)
     }
 
     private fun validateHandlerVisibility(handlers: List<KSFunctionDeclaration>) {
@@ -87,68 +87,56 @@ class ViewModelProcessor(
         }
     }
 
-    private fun findAssociatedContract(
+    private fun findAssociatedIntent(
         resolver: Resolver,
         viewModelClass: KSClassDeclaration
     ): KSClassDeclaration? {
-        // Find Contract by analyzing MviContainerHost<S, I, E> implementation
-        // S extends ViewState, I extends Intent, E extends SideEffect
+        // Find Intent by analyzing the superclass type arguments
+        // e.g., LoginViewModel : MviViewModel<LoginViewState, LoginIntent, LoginSideEffect>
 
-        val containerHostType = viewModelClass.getAllSuperTypes().firstOrNull { superType ->
-            superType.declaration.qualifiedName?.asString() == "io.github.wooongyee.komvi.core.MviContainerHost"
+        // Get the direct superclass (MviViewModel)
+        val superClass = viewModelClass.superTypes.firstOrNull { superType ->
+            val declaration = superType.resolve().declaration
+            declaration.qualifiedName?.asString()?.contains("MviViewModel") == true
         }
 
-        if (containerHostType == null) {
-            logger.warn("ViewModel ${viewModelClass.simpleName.asString()} does not implement MviContainerHost")
+        if (superClass == null) {
+            logger.warn("ViewModel ${viewModelClass.simpleName.asString()} does not extend MviViewModel")
             return null
         }
 
-        // Get type arguments: MviContainerHost<LoginViewState, LoginIntent, LoginSideEffect>
-        val typeArguments = containerHostType.arguments
-        if (typeArguments.size != 3) {
-            logger.warn("MviContainerHost should have 3 type arguments (ViewState, Intent, SideEffect)")
+        // Get type arguments from superclass: MviViewModel<LoginViewState, LoginIntent, LoginSideEffect>
+        val typeArguments = superClass.element?.typeArguments
+        if (typeArguments == null || typeArguments.size != 3) {
+            logger.warn("MviViewModel should have 3 type arguments (ViewState, Intent, SideEffect)")
             return null
         }
 
-        // Get ViewState type (first type argument)
-        val viewStateType = typeArguments[0].type?.resolve()
-        if (viewStateType == null) {
-            logger.warn("Cannot resolve ViewState type")
+        // Get Intent type (second type argument)
+        val intentType = typeArguments[1].type?.resolve()
+        if (intentType == null) {
+            logger.warn("Cannot resolve Intent type")
             return null
         }
 
-        // ViewState type is usually a typealias like LoginViewState
-        // We need to find the Contract that contains the actual State class
-        val viewStateDeclaration = viewStateType.declaration as? KSClassDeclaration
-        if (viewStateDeclaration == null) {
-            logger.warn("ViewState is not a class declaration")
+        logger.info("Intent type: ${intentType.declaration.qualifiedName?.asString()}")
+
+        // Intent type is LoginIntent
+        val intentClass = intentType.declaration as? KSClassDeclaration
+        if (intentClass == null) {
+            logger.warn("Intent is not a class declaration")
             return null
         }
 
-        // The parent of State class is the Contract object/class
-        val contractClass = viewStateDeclaration.parentDeclaration as? KSClassDeclaration
+        logger.info("Found Intent: ${intentClass.simpleName.asString()}")
 
-        if (contractClass == null) {
-            logger.warn("Cannot find Contract parent for ${viewStateDeclaration.simpleName.asString()}")
-        }
-
-        return contractClass
+        return intentClass
     }
 
     private fun validateAllIntentsHaveHandlers(
-        contractClass: KSClassDeclaration,
+        intentClass: KSClassDeclaration,
         handlers: List<KSFunctionDeclaration>
     ) {
-        // Find Intent sealed class in Contract
-        val intentClass = contractClass.declarations
-            .filterIsInstance<KSClassDeclaration>()
-            .firstOrNull { it.modifiers.contains(Modifier.SEALED) }
-
-        if (intentClass == null) {
-            logger.warn("Cannot find Intent sealed class in ${contractClass.simpleName.asString()}")
-            return
-        }
-
         // Get all Intent subclasses
         val allIntents = intentClass.getSealedSubclasses().toList()
         val handlerNames = handlers.map { it.simpleName.asString() }.toSet()
@@ -171,22 +159,26 @@ class ViewModelProcessor(
 
     private fun generateDispatchFunction(
         viewModelClass: KSClassDeclaration,
-        contractClass: KSClassDeclaration,
+        intentClass: KSClassDeclaration,
         handlers: List<KSFunctionDeclaration>
     ) {
         val packageName = viewModelClass.packageName.asString()
         val viewModelName = viewModelClass.simpleName.asString()
-        val contractName = contractClass.simpleName.asString()
-        val baseName = contractName.removeSuffix("Contract")
+        val intentName = intentClass.simpleName.asString()
 
-        // Find Intent class
-        val intentClass = contractClass.declarations
-            .filterIsInstance<KSClassDeclaration>()
-            .firstOrNull { it.modifiers.contains(Modifier.SEALED) }
+        // Build handler metadata map (intent name -> (log, measurePerformance))
+        val handlerMetadata = handlers.associate { handler ->
+            val intentHandlerAnnotation = handler.annotations.first {
+                it.shortName.asString() == "IntentHandler"
+            }
+            val log = intentHandlerAnnotation.arguments.find { it.name?.asString() == "log" }
+                ?.value as? Boolean ?: false
+            val measurePerformance = intentHandlerAnnotation.arguments.find { it.name?.asString() == "measurePerformance" }
+                ?.value as? Boolean ?: false
 
-        if (intentClass == null) {
-            logger.warn("Cannot generate dispatch: no Intent class found")
-            return
+            val handlerName = handler.simpleName.asString()
+            val intentSubclassName = handlerName.removePrefix("handle")
+            intentSubclassName to (log to measurePerformance)
         }
 
         // Get @ViewAction and @Internal intents
@@ -208,7 +200,7 @@ class ViewModelProcessor(
         }
 
         // Generate dispatch function
-        val intentTypeName = ClassName(packageName, "${baseName}Intent")
+        val intentTypeName = intentClass.toClassName()
 
         val dispatchFunction = FunSpec.builder("dispatch")
             .receiver(viewModelClass.toClassName())
@@ -221,19 +213,36 @@ class ViewModelProcessor(
             """.trimIndent())
             .beginControlFlow("when (intent)")
             .apply {
-                // ViewAction cases - call handler
+                // ViewAction cases - call handler with logging/performance
                 viewActionIntents.forEach { viewAction ->
-                    val intentName = viewAction.simpleName.asString()
-                    val handlerName = "handle$intentName"
-                    addStatement("is ${baseName}Intent.$intentName -> $handlerName(intent)")
+                    val subclassName = viewAction.simpleName.asString()
+                    val handlerName = "handle$subclassName"
+                    val (log, measurePerformance) = handlerMetadata[subclassName] ?: (false to false)
+
+                    beginControlFlow("is $intentName.$subclassName ->")
+
+                    if (log) {
+                        addStatement("android.util.Log.d(%S, %S + intent)", viewModelName, "Intent received: ")
+                    }
+
+                    if (measurePerformance) {
+                        addStatement("val startTime = System.currentTimeMillis()")
+                        addStatement("$handlerName(intent)")
+                        addStatement("val duration = System.currentTimeMillis() - startTime")
+                        addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Performance: $handlerName took ", "ms")
+                    } else {
+                        addStatement("$handlerName(intent)")
+                    }
+
+                    endControlFlow()
                 }
 
                 // Internal cases - throw error
                 internalIntents.forEach { internal ->
-                    val intentName = internal.simpleName.asString()
+                    val subclassName = internal.simpleName.asString()
                     addStatement(
-                        "is ${baseName}Intent.$intentName -> error(%S)",
-                        "@Internal Intent $intentName cannot be dispatched from View"
+                        "is $intentName.$subclassName -> error(%S)",
+                        "@Internal Intent $subclassName cannot be dispatched from View"
                     )
                 }
             }

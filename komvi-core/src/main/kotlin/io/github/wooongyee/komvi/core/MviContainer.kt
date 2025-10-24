@@ -74,6 +74,7 @@ interface MviContainer<S : ViewState, I : Intent, E : SideEffect> {
  *
  * @param initialState The initial state value
  * @param scope The [CoroutineScope] for launching coroutines
+ * @param debugMode Enable debug logging for state changes (default: false)
  * @param S The type of [ViewState]
  * @param I The type of [Intent]
  * @param E The type of [SideEffect]
@@ -81,7 +82,8 @@ interface MviContainer<S : ViewState, I : Intent, E : SideEffect> {
  */
 fun <S : ViewState, I : Intent, E : SideEffect> container(
     initialState: S,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    debugMode: Boolean = false
 ): MviContainer<S, I, E> {
-    return MviContainerImpl(initialState, scope)
+    return MviContainerImpl(initialState, scope, debugMode)
 }

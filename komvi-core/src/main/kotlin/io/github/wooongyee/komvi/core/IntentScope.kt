@@ -34,7 +34,15 @@ class IntentScope<S : ViewState, I : Intent, E : SideEffect> internal constructo
      * @param reducer A function that takes current state and returns new state
      */
     suspend fun reduce(reducer: S.() -> S) {
-        container.updateState(reducer)
+        if (container.debugMode) {
+            val oldState = container.state.value
+            val newState = oldState.reducer()
+            val stateTag = oldState::class.simpleName ?: "ViewState"
+            println("[$stateTag] State changed: $oldState -> $newState")
+            container.updateState { newState }
+        } else {
+            container.updateState(reducer)
+        }
     }
 
     /**

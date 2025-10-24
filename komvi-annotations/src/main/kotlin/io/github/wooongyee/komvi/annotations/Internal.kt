@@ -1,10 +1,10 @@
 package io.github.wooongyee.komvi.annotations
 
 /**
- * Marks internal implementation details that should not be used by library consumers.
+ * Marks an Intent as internal, preventing it from being dispatched from the View layer.
  *
- * This annotation is used to indicate implementation details that are internal
- * to the komvi library and may change without notice.
+ * Intents annotated with @Internal can only be called from within the ViewModel.
+ * Attempting to dispatch these from the View will result in a runtime error.
  */
 @Target(
     AnnotationTarget.CLASS,

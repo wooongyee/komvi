@@ -1,11 +1,11 @@
 package io.github.wooongyee.komvi.annotations
 
 /**
- * Marks a function as a view action that processes user interactions.
+ * Marks an Intent as a view action that can be dispatched from the View layer.
  *
- * Functions annotated with @ViewAction are intended to handle UI events
- * and trigger corresponding intents in the MVI container.
+ * Intents annotated with @ViewAction can be called from UI components.
+ * The generated dispatch function will allow these intents to be processed.
  */
-@Target(AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
 annotation class ViewAction
