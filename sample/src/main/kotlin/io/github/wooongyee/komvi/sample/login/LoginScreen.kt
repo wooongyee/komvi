@@ -37,9 +37,9 @@ fun LoginScreen(
 
     LoginContent(
         state = state,
-        onEmailChanged = { viewModel.dispatch(LoginIntent.EmailChanged(it)) },
-        onPasswordChanged = { viewModel.dispatch(LoginIntent.PasswordChanged(it)) },
-        onLoginClicked = { viewModel.dispatch(LoginIntent.LoginClicked) },
+        onEmailChanged = { viewModel.dispatch(LoginIntent.ViewAction.EmailChanged(it)) },
+        onPasswordChanged = { viewModel.dispatch(LoginIntent.ViewAction.PasswordChanged(it)) },
+        onLoginClicked = { viewModel.dispatch(LoginIntent.ViewAction.LoginClicked) },
         modifier = modifier
     )
 }

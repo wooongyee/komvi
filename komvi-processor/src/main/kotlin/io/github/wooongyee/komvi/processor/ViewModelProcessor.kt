@@ -32,14 +32,22 @@ class ViewModelProcessor(
 ) {
 
     fun process(resolver: Resolver): List<KSAnnotated> {
-        val intentHandlerAnnotation = "io.github.wooongyee.komvi.annotations.IntentHandler"
+        val viewActionHandlerAnnotation = "io.github.wooongyee.komvi.annotations.ViewActionHandler"
+        val internalHandlerAnnotation = "io.github.wooongyee.komvi.annotations.InternalHandler"
 
-        val annotatedFunctions = resolver.getSymbolsWithAnnotation(intentHandlerAnnotation)
+        val viewActionHandlers = resolver.getSymbolsWithAnnotation(viewActionHandlerAnnotation)
             .filterIsInstance<KSFunctionDeclaration>()
             .toList()
 
+        val internalHandlers = resolver.getSymbolsWithAnnotation(internalHandlerAnnotation)
+            .filterIsInstance<KSFunctionDeclaration>()
+            .toList()
+
+        // Combine all handlers
+        val allHandlers = viewActionHandlers + internalHandlers
+
         // Group functions by parent ViewModel class
-        val functionsByClass = annotatedFunctions.groupBy { it.parentDeclaration as? KSClassDeclaration }
+        val functionsByClass = allHandlers.groupBy { it.parentDeclaration as? KSClassDeclaration }
 
         functionsByClass.forEach { (viewModelClass, functions) ->
             if (viewModelClass != null) {
@@ -137,8 +145,20 @@ class ViewModelProcessor(
         intentClass: KSClassDeclaration,
         handlers: List<KSFunctionDeclaration>
     ) {
-        // Get all Intent subclasses
-        val allIntents = intentClass.getSealedSubclasses().toList()
+        // Get ViewAction and Internal nested interfaces
+        val viewActionInterface = intentClass.declarations
+            .filterIsInstance<KSClassDeclaration>()
+            .firstOrNull { it.simpleName.asString() == "ViewAction" }
+
+        val internalInterface = intentClass.declarations
+            .filterIsInstance<KSClassDeclaration>()
+            .firstOrNull { it.simpleName.asString() == "Internal" }
+
+        // Get actual intent subclasses (not the interfaces themselves)
+        val viewActionIntents = viewActionInterface?.getSealedSubclasses()?.toList() ?: emptyList()
+        val internalIntents = internalInterface?.getSealedSubclasses()?.toList() ?: emptyList()
+        val allIntents = viewActionIntents + internalIntents
+
         val handlerNames = handlers.map { it.simpleName.asString() }.toSet()
 
         // Check each Intent has a handler
@@ -149,7 +169,7 @@ class ViewModelProcessor(
 
             if (!handlerNames.contains(expectedHandlerName)) {
                 logger.error(
-                    "Missing @IntentHandler for Intent '$intentName'. " +
+                    "Missing handler for Intent '$intentName'. " +
                             "Expected function: $expectedHandlerName",
                     intent
                 )
@@ -166,60 +186,84 @@ class ViewModelProcessor(
         val viewModelName = viewModelClass.simpleName.asString()
         val intentName = intentClass.simpleName.asString()
 
-        // Build handler metadata map (intent name -> (log, measurePerformance))
+        // Build handler metadata map (intent name -> (log, measurePerformance, isViewAction))
         val handlerMetadata = handlers.associate { handler ->
-            val intentHandlerAnnotation = handler.annotations.first {
-                it.shortName.asString() == "IntentHandler"
+            val viewActionAnnotation = handler.annotations.firstOrNull {
+                it.shortName.asString() == "ViewActionHandler"
             }
-            val log = intentHandlerAnnotation.arguments.find { it.name?.asString() == "log" }
+            val internalAnnotation = handler.annotations.firstOrNull {
+                it.shortName.asString() == "InternalHandler"
+            }
+
+            val annotation = viewActionAnnotation ?: internalAnnotation
+            val isViewActionHandler = viewActionAnnotation != null
+
+            val log = annotation?.arguments?.find { it.name?.asString() == "log" }
                 ?.value as? Boolean ?: false
-            val measurePerformance = intentHandlerAnnotation.arguments.find { it.name?.asString() == "measurePerformance" }
+            val measurePerformance = annotation?.arguments?.find { it.name?.asString() == "measurePerformance" }
                 ?.value as? Boolean ?: false
 
             val handlerName = handler.simpleName.asString()
             val intentSubclassName = handlerName.removePrefix("handle")
-            intentSubclassName to (log to measurePerformance)
+            intentSubclassName to Triple(log, measurePerformance, isViewActionHandler)
         }
 
-        // Get @ViewAction and @Internal intents
-        val viewActionIntents = mutableListOf<KSClassDeclaration>()
-        val internalIntents = mutableListOf<KSClassDeclaration>()
+        // Get ViewAction and Internal nested sealed interfaces
+        val viewActionInterface = intentClass.declarations
+            .filterIsInstance<KSClassDeclaration>()
+            .firstOrNull { it.simpleName.asString() == "ViewAction" }
 
-        intentClass.getSealedSubclasses().forEach { subclass ->
-            val hasViewAction = subclass.annotations.any {
-                it.shortName.asString() == "ViewAction"
-            }
-            val hasInternal = subclass.annotations.any {
-                it.shortName.asString() == "Internal"
+        val internalInterface = intentClass.declarations
+            .filterIsInstance<KSClassDeclaration>()
+            .firstOrNull { it.simpleName.asString() == "Internal" }
+
+        val viewActionIntents = viewActionInterface?.getSealedSubclasses()?.toList() ?: emptyList()
+        val internalIntents = internalInterface?.getSealedSubclasses()?.toList() ?: emptyList()
+
+        // Validate handler-intent matching
+        handlerMetadata.forEach { (intentSubclassName, metadata) ->
+            val (_, _, isViewActionHandler) = metadata
+
+            val intentClass = (viewActionIntents + internalIntents).find {
+                it.simpleName.asString() == intentSubclassName
             }
 
-            when {
-                hasViewAction -> viewActionIntents.add(subclass)
-                hasInternal -> internalIntents.add(subclass)
+            if (intentClass != null) {
+                val isViewActionIntent = viewActionIntents.contains(intentClass)
+                val isInternalIntent = internalIntents.contains(intentClass)
+
+                if (isViewActionHandler && isInternalIntent) {
+                    logger.error(
+                        "@ViewActionHandler function 'handle$intentSubclassName' cannot handle @Internal intent '$intentSubclassName'",
+                        handlers.find { it.simpleName.asString() == "handle$intentSubclassName" }
+                    )
+                } else if (!isViewActionHandler && isViewActionIntent) {
+                    logger.error(
+                        "@InternalHandler function 'handle$intentSubclassName' cannot handle @ViewAction intent '$intentSubclassName'",
+                        handlers.find { it.simpleName.asString() == "handle$intentSubclassName" }
+                    )
+                }
             }
         }
 
-        // Generate dispatch function
-        val intentTypeName = intentClass.toClassName()
+        // Generate dispatch functions (ViewAction and Internal overloads)
+        val viewModelClassName = viewModelClass.toClassName()
+        val viewActionTypeName = ClassName(packageName, "$intentName.ViewAction")
+        val internalTypeName = ClassName(packageName, "$intentName.Internal")
 
-        val dispatchFunction = FunSpec.builder("dispatch")
-            .receiver(viewModelClass.toClassName())
-            .addParameter(ParameterSpec.builder("intent", intentTypeName).build())
-            .addKdoc("""
-                Dispatches intents to appropriate @IntentHandler functions.
-
-                Only @ViewAction intents can be dispatched from View layer.
-                @Internal intents will result in a runtime error.
-            """.trimIndent())
+        // ViewAction dispatch function
+        val viewActionDispatch = FunSpec.builder("dispatch")
+            .receiver(viewModelClassName)
+            .addParameter(ParameterSpec.builder("intent", viewActionTypeName).build())
+            .addKdoc("Dispatches ViewAction intents from View layer")
             .beginControlFlow("when (intent)")
             .apply {
-                // ViewAction cases - call handler with logging/performance
                 viewActionIntents.forEach { viewAction ->
                     val subclassName = viewAction.simpleName.asString()
                     val handlerName = "handle$subclassName"
-                    val (log, measurePerformance) = handlerMetadata[subclassName] ?: (false to false)
+                    val (log, measurePerformance, _) = handlerMetadata[subclassName] ?: Triple(false, false, true)
 
-                    beginControlFlow("is $intentName.$subclassName ->")
+                    beginControlFlow("is $intentName.ViewAction.$subclassName ->")
 
                     if (log) {
                         addStatement("android.util.Log.d(%S, %S + intent)", viewModelName, "Intent received: ")
@@ -236,14 +280,38 @@ class ViewModelProcessor(
 
                     endControlFlow()
                 }
+            }
+            .endControlFlow()
+            .build()
 
-                // Internal cases - throw error
+        // Internal dispatch function
+        val internalDispatch = FunSpec.builder("dispatch")
+            .receiver(viewModelClassName)
+            .addParameter(ParameterSpec.builder("intent", internalTypeName).build())
+            .addKdoc("Dispatches Internal intents within ViewModel")
+            .beginControlFlow("when (intent)")
+            .apply {
                 internalIntents.forEach { internal ->
                     val subclassName = internal.simpleName.asString()
-                    addStatement(
-                        "is $intentName.$subclassName -> error(%S)",
-                        "@Internal Intent $subclassName cannot be dispatched from View"
-                    )
+                    val handlerName = "handle$subclassName"
+                    val (log, measurePerformance, _) = handlerMetadata[subclassName] ?: Triple(false, false, false)
+
+                    beginControlFlow("is $intentName.Internal.$subclassName ->")
+
+                    if (log) {
+                        addStatement("android.util.Log.d(%S, %S + intent)", viewModelName, "Intent received: ")
+                    }
+
+                    if (measurePerformance) {
+                        addStatement("val startTime = System.currentTimeMillis()")
+                        addStatement("$handlerName(intent)")
+                        addStatement("val duration = System.currentTimeMillis() - startTime")
+                        addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Performance: $handlerName took ", "ms")
+                    } else {
+                        addStatement("$handlerName(intent)")
+                    }
+
+                    endControlFlow()
                 }
             }
             .endControlFlow()
@@ -252,11 +320,12 @@ class ViewModelProcessor(
         val fileSpec = FileSpec.builder(packageName, "${viewModelName}_Dispatch")
             .addFileComment("Generated by Komvi KSP Processor")
             .addFileComment("DO NOT EDIT MANUALLY")
-            .addFunction(dispatchFunction)
+            .addFunction(viewActionDispatch)
+            .addFunction(internalDispatch)
             .build()
 
         fileSpec.writeTo(codeGenerator, Dependencies(false, viewModelClass.containingFile!!))
 
-        logger.info("Generated dispatch function for $viewModelName")
+        logger.info("Generated dispatch functions for $viewModelName")
     }
 }

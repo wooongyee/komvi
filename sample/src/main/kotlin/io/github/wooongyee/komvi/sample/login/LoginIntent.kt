@@ -1,25 +1,25 @@
 package io.github.wooongyee.komvi.sample.login
 
-import io.github.wooongyee.komvi.annotations.Internal
-import io.github.wooongyee.komvi.annotations.ViewAction
 import io.github.wooongyee.komvi.core.Intent
 
 /**
  * Login screen intents
  */
 sealed interface LoginIntent : Intent {
-    @ViewAction
-    data class EmailChanged(val email: String) : LoginIntent
+    /**
+     * Intents that can be dispatched from View layer
+     */
+    sealed interface ViewAction : LoginIntent {
+        data class EmailChanged(val email: String) : ViewAction
+        data class PasswordChanged(val password: String) : ViewAction
+        data object LoginClicked : ViewAction
+    }
 
-    @ViewAction
-    data class PasswordChanged(val password: String) : LoginIntent
-
-    @ViewAction
-    data object LoginClicked : LoginIntent
-
-    @Internal
-    data object OnLoginSuccess : LoginIntent
-
-    @Internal
-    data class OnLoginFailure(val error: String) : LoginIntent
+    /**
+     * Intents that can only be dispatched from ViewModel internally
+     */
+    sealed interface Internal : LoginIntent {
+        data object OnLoginSuccess : Internal
+        data class OnLoginFailure(val error: String) : Internal
+    }
 }
