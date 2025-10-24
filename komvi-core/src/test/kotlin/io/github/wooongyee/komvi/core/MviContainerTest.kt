@@ -1,6 +1,7 @@
 package io.github.wooongyee.komvi.core
 
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -90,14 +91,21 @@ class MviContainerTest {
             scope = this
         )
 
+        // Start collecting before emitting
+        val effects = mutableListOf<TestEffect>()
+        val collectJob = launch {
+            container.sideEffect.collect { effects.add(it) }
+        }
+
         container.intent {
             postSideEffect(TestEffect.ShowToast)
         }
 
         testScheduler.advanceUntilIdle()
+        collectJob.cancel()
 
-        val effect = container.sideEffect.first()
-        assertEquals(TestEffect.ShowToast, effect)
+        assertEquals(1, effects.size)
+        assertEquals(TestEffect.ShowToast, effects.first())
     }
 
     @Test
