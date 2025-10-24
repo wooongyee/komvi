@@ -10,14 +10,15 @@ import kotlinx.coroutines.flow.StateFlow
  * access to state and side effects.
  *
  * @param S The type of [ViewState]
+ * @param I The type of [Intent]
  * @param E The type of [SideEffect]
  */
-interface MviContainerHost<S : ViewState, E : SideEffect> {
+interface MviContainerHost<S : ViewState, I : Intent, E : SideEffect> {
 
     /**
      * The MVI container instance.
      */
-    val container: MviContainer<S, E>
+    val container: MviContainer<S, I, E>
 
     /**
      * Shortcut property for accessing current state.
@@ -39,7 +40,7 @@ interface MviContainerHost<S : ViewState, E : SideEffect> {
      *
      * @param block The intent processing block with [IntentScope] as receiver
      */
-    fun intent(block: suspend IntentScope<S, E>.() -> Unit) {
+    fun intent(block: suspend IntentScope<S, I, E>.() -> Unit) {
         container.intent(block)
     }
 }

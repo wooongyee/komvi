@@ -19,12 +19,13 @@ import kotlinx.coroutines.launch
  * @param initialState The initial state value
  * @param scope The [CoroutineScope] for launching coroutines (typically viewModelScope)
  * @param S The type of [ViewState]
+ * @param I The type of [Intent]
  * @param E The type of [SideEffect]
  */
-internal class MviContainerImpl<S : ViewState, E : SideEffect>(
+internal class MviContainerImpl<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S,
     private val scope: CoroutineScope
-) : MviContainer<S, E> {
+) : MviContainer<S, I, E> {
 
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<S> = _state.asStateFlow()
@@ -35,7 +36,7 @@ internal class MviContainerImpl<S : ViewState, E : SideEffect>(
     )
     override val sideEffect = _sideEffect.asSharedFlow()
 
-    override fun intent(block: suspend IntentScope<S, E>.() -> Unit) {
+    override fun intent(block: suspend IntentScope<S, I, E>.() -> Unit) {
         scope.launch {
             IntentScope(this@MviContainerImpl).block()
         }

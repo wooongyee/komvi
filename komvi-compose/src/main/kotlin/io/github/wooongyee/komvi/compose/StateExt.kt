@@ -3,6 +3,7 @@ package io.github.wooongyee.komvi.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.wooongyee.komvi.core.Intent
 import io.github.wooongyee.komvi.core.MviContainer
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
@@ -16,6 +17,6 @@ import io.github.wooongyee.komvi.core.ViewState
  * @return A [State] object representing the current view state
  */
 @Composable
-fun <S : ViewState, E : SideEffect> MviContainer<S, E>.collectAsStateWithLifecycle(): State<S> {
+fun <S : ViewState, I : Intent, E : SideEffect> MviContainer<S, I, E>.collectAsStateWithLifecycle(): State<S> {
     return state.collectAsStateWithLifecycle()
 }

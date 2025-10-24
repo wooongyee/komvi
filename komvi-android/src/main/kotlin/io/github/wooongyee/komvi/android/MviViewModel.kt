@@ -2,6 +2,7 @@ package io.github.wooongyee.komvi.android
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.wooongyee.komvi.core.Intent
 import io.github.wooongyee.komvi.core.MviContainer
 import io.github.wooongyee.komvi.core.MviContainerHost
 import io.github.wooongyee.komvi.core.SideEffect
@@ -15,14 +16,15 @@ import io.github.wooongyee.komvi.core.container
  * The container is automatically cleaned up when the ViewModel is cleared.
  *
  * @param S The type of view state that extends [ViewState]
+ * @param I The type of intent that extends [Intent]
  * @param E The type of side effect that extends [SideEffect]
  * @param initialState The initial state of the view
  */
-abstract class MviViewModel<S : ViewState, E : SideEffect>(
+abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S
-) : ViewModel(), MviContainerHost<S, E> {
+) : ViewModel(), MviContainerHost<S, I, E> {
 
-    override val container: MviContainer<S, E> = container(
+    override val container: MviContainer<S, I, E> = container(
         initialState = initialState,
         scope = viewModelScope
     )

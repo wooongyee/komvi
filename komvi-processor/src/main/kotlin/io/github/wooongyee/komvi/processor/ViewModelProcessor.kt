@@ -91,8 +91,8 @@ class ViewModelProcessor(
         resolver: Resolver,
         viewModelClass: KSClassDeclaration
     ): KSClassDeclaration? {
-        // Find Contract by analyzing MviContainerHost<S, E> implementation
-        // S extends ViewState, E extends SideEffect
+        // Find Contract by analyzing MviContainerHost<S, I, E> implementation
+        // S extends ViewState, I extends Intent, E extends SideEffect
 
         val containerHostType = viewModelClass.getAllSuperTypes().firstOrNull { superType ->
             superType.declaration.qualifiedName?.asString() == "io.github.wooongyee.komvi.core.MviContainerHost"
@@ -103,10 +103,10 @@ class ViewModelProcessor(
             return null
         }
 
-        // Get type arguments: MviContainerHost<LoginViewState, LoginSideEffect>
+        // Get type arguments: MviContainerHost<LoginViewState, LoginIntent, LoginSideEffect>
         val typeArguments = containerHostType.arguments
-        if (typeArguments.size != 2) {
-            logger.warn("MviContainerHost should have 2 type arguments")
+        if (typeArguments.size != 3) {
+            logger.warn("MviContainerHost should have 3 type arguments (ViewState, Intent, SideEffect)")
             return null
         }
 

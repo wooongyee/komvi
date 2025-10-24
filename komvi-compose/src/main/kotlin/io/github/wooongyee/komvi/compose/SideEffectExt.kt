@@ -2,9 +2,10 @@ package io.github.wooongyee.komvi.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import io.github.wooongyee.komvi.core.Intent
 import io.github.wooongyee.komvi.core.MviContainer
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
@@ -19,7 +20,7 @@ import io.github.wooongyee.komvi.core.ViewState
  * @param onSideEffect Callback invoked for each side effect
  */
 @Composable
-fun <S : ViewState, E : SideEffect> MviContainer<S, E>.collectSideEffect(
+fun <S : ViewState, I : Intent, E : SideEffect> MviContainer<S, I, E>.collectSideEffect(
     lifecycleState: Lifecycle.State = Lifecycle.State.STARTED,
     onSideEffect: suspend (E) -> Unit
 ) {

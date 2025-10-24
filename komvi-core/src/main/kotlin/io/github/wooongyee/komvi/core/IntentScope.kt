@@ -11,10 +11,11 @@ package io.github.wooongyee.komvi.core
  * This scope is the receiver of the lambda passed to [MviContainer.intent].
  *
  * @param S The type of [ViewState]
+ * @param I The type of [Intent]
  * @param E The type of [SideEffect]
  */
-class IntentScope<S : ViewState, E : SideEffect> internal constructor(
-    private val container: MviContainerImpl<S, E>
+class IntentScope<S : ViewState, I : Intent, E : SideEffect> internal constructor(
+    private val container: MviContainerImpl<S, I, E>
 ) {
 
     /**

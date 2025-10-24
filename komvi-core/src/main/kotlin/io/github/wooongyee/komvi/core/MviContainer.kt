@@ -13,12 +13,13 @@ import kotlinx.coroutines.flow.StateFlow
  * - Processes intents through the [intent] function
  *
  * @param S The type of [ViewState]
+ * @param I The type of [Intent]
  * @param E The type of [SideEffect]
  *
  * Example:
  * ```
  * class LoginViewModel : ViewModel() {
- *     private val container = container<LoginState, LoginEffect>(
+ *     private val container = container<LoginState, LoginIntent, LoginEffect>(
  *         initialState = LoginState(),
  *         scope = viewModelScope
  *     )
@@ -33,7 +34,7 @@ import kotlinx.coroutines.flow.StateFlow
  * }
  * ```
  */
-interface MviContainer<S : ViewState, E : SideEffect> {
+interface MviContainer<S : ViewState, I : Intent, E : SideEffect> {
 
     /**
      * Current state as a hot [StateFlow].
@@ -65,7 +66,7 @@ interface MviContainer<S : ViewState, E : SideEffect> {
      * }
      * ```
      */
-    fun intent(block: suspend IntentScope<S, E>.() -> Unit)
+    fun intent(block: suspend IntentScope<S, I, E>.() -> Unit)
 }
 
 /**
@@ -74,12 +75,13 @@ interface MviContainer<S : ViewState, E : SideEffect> {
  * @param initialState The initial state value
  * @param scope The [CoroutineScope] for launching coroutines
  * @param S The type of [ViewState]
+ * @param I The type of [Intent]
  * @param E The type of [SideEffect]
  * @return A new [MviContainer] instance
  */
-fun <S : ViewState, E : SideEffect> container(
+fun <S : ViewState, I : Intent, E : SideEffect> container(
     initialState: S,
     scope: CoroutineScope
-): MviContainer<S, E> {
+): MviContainer<S, I, E> {
     return MviContainerImpl(initialState, scope)
 }
