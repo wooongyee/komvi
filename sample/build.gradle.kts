@@ -6,11 +6,11 @@ plugins {
 
 android {
     namespace = "io.github.wooongyee.komvi.sample"
-    compileSdk = 36
+    compileSdk = property("android.compileSdk").toString().toInt()
 
     defaultConfig {
         applicationId = "io.github.wooongyee.komvi.sample"
-        targetSdk = 36
+        targetSdk = property("android.compileSdk").toString().toInt()
         versionCode = 1
         versionName = "1.0"
     }
