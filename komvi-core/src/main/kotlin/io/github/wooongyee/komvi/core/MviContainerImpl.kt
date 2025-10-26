@@ -1,5 +1,6 @@
 package io.github.wooongyee.komvi.core
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
  * @param initialState The initial state value
  * @param scope The [CoroutineScope] for launching coroutines (typically viewModelScope)
  * @param debugMode Enable debug logging for state changes
+ * @param dispatcher The [CoroutineDispatcher] for executing intents
  * @param S The type of [ViewState]
  * @param I The type of [Intent]
  * @param E The type of [SideEffect]
@@ -26,7 +28,8 @@ import kotlinx.coroutines.launch
 internal class MviContainerImpl<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S,
     private val scope: CoroutineScope,
-    internal val debugMode: Boolean = false
+    internal val debugMode: Boolean = false,
+    private val dispatcher: CoroutineDispatcher
 ) : MviContainer<S, I, E> {
 
     private val _state = MutableStateFlow(initialState)
@@ -39,7 +42,7 @@ internal class MviContainerImpl<S : ViewState, I : Intent, E : SideEffect>(
     override val sideEffect = _sideEffect.asSharedFlow()
 
     override fun intent(block: suspend IntentScope<S, I, E>.() -> Unit) {
-        scope.launch {
+        scope.launch(dispatcher) {
             IntentScope(this@MviContainerImpl).block()
         }
     }

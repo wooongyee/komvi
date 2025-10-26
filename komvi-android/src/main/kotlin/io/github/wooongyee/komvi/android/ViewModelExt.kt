@@ -7,6 +7,8 @@ import io.github.wooongyee.komvi.core.MviContainer
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
 import io.github.wooongyee.komvi.core.container
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Creates an MVI container using the ViewModel's viewModelScope.
@@ -19,13 +21,16 @@ import io.github.wooongyee.komvi.core.container
  * @param E The type of side effect that extends [SideEffect]
  * @param initialState The initial state of the view
  * @param debugMode Enable debug logging for state changes (default: false)
+ * @param dispatcher The coroutine dispatcher for executing intents (default: Dispatchers.Default)
  * @return A new [MviContainer] instance scoped to this ViewModel
  */
 fun <S : ViewState, I : Intent, E : SideEffect> ViewModel.container(
     initialState: S,
-    debugMode: Boolean = false
+    debugMode: Boolean = false,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default
 ): MviContainer<S, I, E> = container(
     initialState = initialState,
     scope = viewModelScope,
-    debugMode = debugMode
+    debugMode = debugMode,
+    dispatcher = dispatcher
 )

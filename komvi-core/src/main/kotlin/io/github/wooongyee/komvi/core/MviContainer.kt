@@ -1,6 +1,8 @@
 package io.github.wooongyee.komvi.core
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -75,6 +77,7 @@ interface MviContainer<S : ViewState, I : Intent, E : SideEffect> {
  * @param initialState The initial state value
  * @param scope The [CoroutineScope] for launching coroutines
  * @param debugMode Enable debug logging for state changes (default: false)
+ * @param dispatcher The [CoroutineDispatcher] for executing intents (default: Dispatchers.Default)
  * @param S The type of [ViewState]
  * @param I The type of [Intent]
  * @param E The type of [SideEffect]
@@ -83,7 +86,8 @@ interface MviContainer<S : ViewState, I : Intent, E : SideEffect> {
 fun <S : ViewState, I : Intent, E : SideEffect> container(
     initialState: S,
     scope: CoroutineScope,
-    debugMode: Boolean = false
+    debugMode: Boolean = false,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default
 ): MviContainer<S, I, E> {
-    return MviContainerImpl(initialState, scope, debugMode)
+    return MviContainerImpl(initialState, scope, debugMode, dispatcher)
 }

@@ -19,6 +19,7 @@ kotlin {
 dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
+    compileOnly(libs.kover.gradlePlugin)
 }
 
 gradlePlugin {
@@ -34,6 +35,10 @@ gradlePlugin {
         register("kotlinLibrary") {
             id = "komvi.kotlin.library"
             implementationClass = "KotlinLibraryConventionPlugin"
+        }
+        register("kover") {
+            id = "komvi.kover"
+            implementationClass = "KoverConventionPlugin"
         }
     }
 }

@@ -8,6 +8,8 @@ import io.github.wooongyee.komvi.core.MviContainerHost
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
 import io.github.wooongyee.komvi.core.container
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Base ViewModel class that integrates MVI pattern with Android's ViewModel lifecycle.
@@ -20,16 +22,19 @@ import io.github.wooongyee.komvi.core.container
  * @param E The type of side effect that extends [SideEffect]
  * @param initialState The initial state of the view
  * @param debugMode Enable debug logging for state changes (default: false, use BuildConfig.DEBUG in production)
+ * @param dispatcher The coroutine dispatcher for executing intents (default: Dispatchers.Default)
  */
 abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S,
-    debugMode: Boolean = false
+    debugMode: Boolean = false,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel(), MviContainerHost<S, I, E> {
 
     private val _container: MviContainer<S, I, E> = container(
         initialState = initialState,
         scope = viewModelScope,
-        debugMode = debugMode
+        debugMode = debugMode,
+        dispatcher = dispatcher
     )
 
     override val container: MviContainer<S, I, E>

@@ -1,5 +1,6 @@
 plugins {
     id("komvi.kotlin.library")
+    id("komvi.kover")
 }
 
 dependencies {
@@ -7,4 +8,6 @@ dependencies {
     implementation(libs.ksp.api)
     implementation(libs.kotlinpoet)
     implementation(libs.kotlinpoet.ksp)
+
+    testImplementation(libs.kotlin.test)
 }

@@ -1,5 +1,6 @@
 plugins {
     id("komvi.android.library")
+    id("komvi.kover")
     alias(libs.plugins.compose.compiler)
 }
 
@@ -18,4 +19,8 @@ dependencies {
     api(libs.compose.runtime)
     api(libs.compose.ui)
     api(libs.lifecycle.runtime.compose)
+
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.turbine)
 }

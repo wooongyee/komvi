@@ -1,11 +1,14 @@
 package io.github.wooongyee.komvi.core
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MviContainerTest {
 
     // Test state, intent, and effect
@@ -20,22 +23,25 @@ class MviContainerTest {
         data object ShowToast : TestEffect
     }
 
+    // Test helper function
+    private fun kotlinx.coroutines.test.TestScope.testContainer(
+        initialState: TestState
+    ) = container<TestState, TestIntent, TestEffect>(
+        initialState = initialState,
+        scope = this,
+        dispatcher = StandardTestDispatcher(testScheduler)
+    )
+
     @Test
     fun `initial state should be set correctly`() = runTest {
-        val container = container<TestState, TestIntent, TestEffect>(
-            initialState = TestState(count = 5),
-            scope = this
-        )
+        val container = testContainer(initialState = TestState(count = 5))
 
         assertEquals(5, container.state.value.count)
     }
 
     @Test
     fun `reduce should update state`() = runTest {
-        val container = container<TestState, TestIntent, TestEffect>(
-            initialState = TestState(count = 0),
-            scope = this
-        )
+        val container = testContainer(initialState = TestState(count = 0))
 
         container.intent {
             reduce { copy(count = count + 1) }
@@ -48,10 +54,7 @@ class MviContainerTest {
 
     @Test
     fun `multiple reduce calls in single intent should update state sequentially`() = runTest {
-        val container = container<TestState, TestIntent, TestEffect>(
-            initialState = TestState(count = 0),
-            scope = this
-        )
+        val container = testContainer(initialState = TestState(count = 0))
 
         container.intent {
             reduce { copy(count = count + 1) }
@@ -66,10 +69,7 @@ class MviContainerTest {
 
     @Test
     fun `concurrent intent calls should be thread-safe`() = runTest {
-        val container = container<TestState, TestIntent, TestEffect>(
-            initialState = TestState(count = 0),
-            scope = this
-        )
+        val container = testContainer(initialState = TestState(count = 0))
 
         // Launch multiple concurrent intents
         repeat(100) {
@@ -86,10 +86,7 @@ class MviContainerTest {
 
     @Test
     fun `postSideEffect should emit side effect`() = runTest {
-        val container = container<TestState, TestIntent, TestEffect>(
-            initialState = TestState(),
-            scope = this
-        )
+        val container = testContainer(initialState = TestState())
 
         // Start collecting before emitting
         val effects = mutableListOf<TestEffect>()
@@ -110,10 +107,7 @@ class MviContainerTest {
 
     @Test
     fun `state should be accessible in intent scope`() = runTest {
-        val container = container<TestState, TestIntent, TestEffect>(
-            initialState = TestState(count = 10),
-            scope = this
-        )
+        val container = testContainer(initialState = TestState(count = 10))
 
         container.intent {
             val currentCount = state.count
@@ -127,10 +121,7 @@ class MviContainerTest {
 
     @Test
     fun `multiple intent calls should be independent`() = runTest {
-        val container = container<TestState, TestIntent, TestEffect>(
-            initialState = TestState(count = 0),
-            scope = this
-        )
+        val container = testContainer(initialState = TestState(count = 0))
 
         container.intent {
             reduce { copy(count = count + 1) }

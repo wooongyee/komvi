@@ -1,5 +1,6 @@
 plugins {
     id("komvi.android.library")
+    id("komvi.kover")
 }
 
 android {
@@ -13,4 +14,6 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.lifecycle.runtime.testing)
 }
