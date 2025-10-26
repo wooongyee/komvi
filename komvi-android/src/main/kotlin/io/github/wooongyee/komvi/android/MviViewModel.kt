@@ -26,9 +26,19 @@ abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     debugMode: Boolean = false
 ) : ViewModel(), MviContainerHost<S, I, E> {
 
-    override val container: MviContainer<S, I, E> = container(
+    private val _container: MviContainer<S, I, E> = container(
         initialState = initialState,
         scope = viewModelScope,
         debugMode = debugMode
     )
+
+    override val container: MviContainer<S, I, E>
+        get() = throw UnsupportedOperationException("Direct container access is not allowed. Use intentScope in Intent handlers.")
+
+    override val state get() = _container.state
+    override val sideEffect get() = _container.sideEffect
+
+    override fun intentScope(block: suspend io.github.wooongyee.komvi.core.IntentScope<S, I, E>.() -> Unit) {
+        _container.intent(block)
+    }
 }

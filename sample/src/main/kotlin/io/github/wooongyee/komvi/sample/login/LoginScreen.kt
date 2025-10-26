@@ -23,7 +23,7 @@ fun LoginScreen(
     val context = LocalContext.current
 
     // Collect side effects
-    viewModel.container.collectSideEffect { effect ->
+    viewModel.collectSideEffect { effect ->
         when (effect) {
             is LoginSideEffect.ShowToast -> {
                 Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()

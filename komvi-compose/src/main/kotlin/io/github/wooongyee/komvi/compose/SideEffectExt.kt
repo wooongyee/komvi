@@ -6,12 +6,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import io.github.wooongyee.komvi.core.Intent
-import io.github.wooongyee.komvi.core.MviContainer
+import io.github.wooongyee.komvi.core.MviContainerHost
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
 
 /**
- * Collects side effects from MviContainer in a lifecycle-aware manner.
+ * Collects side effects from MviContainerHost in a lifecycle-aware manner.
  *
  * Side effects are collected only when the lifecycle is at least STARTED.
  * The collection automatically stops when the lifecycle falls below STARTED.
@@ -20,7 +20,7 @@ import io.github.wooongyee.komvi.core.ViewState
  * @param onSideEffect Callback invoked for each side effect
  */
 @Composable
-fun <S : ViewState, I : Intent, E : SideEffect> MviContainer<S, I, E>.collectSideEffect(
+fun <S : ViewState, I : Intent, E : SideEffect> MviContainerHost<S, I, E>.collectSideEffect(
     lifecycleState: Lifecycle.State = Lifecycle.State.STARTED,
     onSideEffect: suspend (E) -> Unit
 ) {

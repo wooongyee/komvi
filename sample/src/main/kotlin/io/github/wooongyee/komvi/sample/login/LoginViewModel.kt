@@ -11,23 +11,23 @@ class LoginViewModel : MviViewModel<LoginViewState, LoginIntent, LoginSideEffect
 ) {
 
     @ViewActionHandler(log = true)
-    internal fun handleEmailChanged(intent: LoginIntent.ViewAction.EmailChanged) = intent {
+    internal fun handleEmailChanged(intent: LoginIntent.ViewAction.EmailChanged) = intentScope {
         reduce { copy(email = intent.email, errorMessage = null) }
     }
 
     @ViewActionHandler(log = true)
-    internal fun handlePasswordChanged(intent: LoginIntent.ViewAction.PasswordChanged) = intent {
+    internal fun handlePasswordChanged(intent: LoginIntent.ViewAction.PasswordChanged) = intentScope {
         reduce { copy(password = intent.password, errorMessage = null) }
     }
 
     @ViewActionHandler(log = true, track = true, measurePerformance = true)
-    internal fun handleLoginClicked(intent: LoginIntent.ViewAction.LoginClicked) = intent {
+    internal fun handleLoginClicked(intent: LoginIntent.ViewAction.LoginClicked) = intentScope {
         val currentEmail = state.email
         val currentPassword = state.password
 
         if (currentEmail.isBlank() || currentPassword.isBlank()) {
             reduce { copy(errorMessage = "Email and password cannot be empty") }
-            return@intent
+            return@intentScope
         }
 
         reduce { copy(isLoading = true, errorMessage = null) }
@@ -43,14 +43,14 @@ class LoginViewModel : MviViewModel<LoginViewState, LoginIntent, LoginSideEffect
     }
 
     @InternalHandler
-    internal fun handleOnLoginSuccess(intent: LoginIntent.Internal.OnLoginSuccess) = intent {
+    internal fun handleOnLoginSuccess(intent: LoginIntent.Internal.OnLoginSuccess) = intentScope {
         reduce { copy(isLoading = false) }
         postSideEffect(LoginSideEffect.NavigateToHome)
         postSideEffect(LoginSideEffect.ShowToast("Login successful!"))
     }
 
     @InternalHandler
-    internal fun handleOnLoginFailure(intent: LoginIntent.Internal.OnLoginFailure) = intent {
+    internal fun handleOnLoginFailure(intent: LoginIntent.Internal.OnLoginFailure) = intentScope {
         reduce {
             copy(
                 isLoading = false,
