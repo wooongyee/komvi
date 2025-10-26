@@ -1,5 +1,7 @@
 package io.github.wooongyee.komvi.android
 
+import android.os.Parcelable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.wooongyee.komvi.core.Intent
@@ -10,6 +12,7 @@ import io.github.wooongyee.komvi.core.ViewState
 import io.github.wooongyee.komvi.core.container
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Base ViewModel class that integrates MVI pattern with Android's ViewModel lifecycle.
@@ -17,25 +20,48 @@ import kotlinx.coroutines.Dispatchers
  * This abstract class provides MVI container functionality tied to the ViewModel's lifecycle scope.
  * The container is automatically cleaned up when the ViewModel is cleared.
  *
+ * Note: If using savedStateHandle, the state (S) must implement Parcelable.
+ * Use @Parcelize annotation for easy implementation.
+ *
  * @param S The type of view state that extends [ViewState]
  * @param I The type of intent that extends [Intent]
  * @param E The type of side effect that extends [SideEffect]
  * @param initialState The initial state of the view
+ * @param savedStateHandle Optional SavedStateHandle for state persistence (requires S to be Parcelable)
+ * @param stateKey Key for saving state in SavedStateHandle (default: "mvi_state")
  * @param debugMode Enable debug logging for state changes (default: false, use BuildConfig.DEBUG in production)
  * @param dispatcher The coroutine dispatcher for executing intents (default: Dispatchers.Default)
  */
 abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S,
+    savedStateHandle: SavedStateHandle? = null,
+    stateKey: String = "mvi_state",
     debugMode: Boolean = false,
     dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel(), MviContainerHost<S, I, E> {
 
     private val _container: MviContainer<S, I, E> = container(
-        initialState = initialState,
+        initialState = savedStateHandle?.get<S>(stateKey) ?: initialState,
         scope = viewModelScope,
         debugMode = debugMode,
         dispatcher = dispatcher
     )
+
+    init {
+        // Automatically save state when it changes (requires S to be Parcelable)
+        savedStateHandle?.let { handle ->
+            require(initialState is Parcelable) {
+                "State must implement Parcelable when using SavedStateHandle. " +
+                "Use @Parcelize annotation on your ViewState data class."
+            }
+
+            viewModelScope.launch {
+                _container.state.collect { state ->
+                    handle[stateKey] = state
+                }
+            }
+        }
+    }
 
     override val container: MviContainer<S, I, E>
         get() = throw UnsupportedOperationException("Direct container access is not allowed. Use intentScope in Intent handlers.")

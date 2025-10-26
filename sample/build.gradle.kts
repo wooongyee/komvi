@@ -2,6 +2,7 @@ plugins {
     id("komvi.android.application")
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
+    id("kotlin-parcelize")
 }
 
 android {

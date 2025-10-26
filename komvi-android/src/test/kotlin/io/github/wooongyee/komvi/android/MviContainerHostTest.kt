@@ -2,12 +2,17 @@ package io.github.wooongyee.komvi.android
 
 import io.github.wooongyee.komvi.core.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+
+@OptIn(ExperimentalCoroutinesApi::class)
 
 class MviContainerHostTest {
 
@@ -29,12 +34,13 @@ class MviContainerHostTest {
     }
 
     class TestHost(
-        scope: CoroutineScope
+        scope: TestScope
     ) : MviContainerHost<TestState, TestIntent, TestEffect> {
         private val _container: MviContainer<TestState, TestIntent, TestEffect> = container(
             initialState = TestState(),
             scope = scope,
-            debugMode = false
+            debugMode = false,
+            dispatcher = StandardTestDispatcher(scope.testScheduler)
         )
 
         override val container: MviContainer<TestState, TestIntent, TestEffect>
