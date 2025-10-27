@@ -26,11 +26,13 @@ class MviContainerTest {
     // Test helper function
     private fun kotlinx.coroutines.test.TestScope.testContainer(
         initialState: TestState
-    ) = container<TestState, TestIntent, TestEffect>(
-        initialState = initialState,
-        scope = this,
-        dispatcher = StandardTestDispatcher(testScheduler)
-    )
+    ): MviContainerImpl<TestState, TestIntent, TestEffect> {
+        return container<TestState, TestIntent, TestEffect>(
+            initialState = initialState,
+            scope = this,
+            dispatcher = StandardTestDispatcher(testScheduler)
+        ) as MviContainerImpl
+    }
 
     @Test
     fun `initial state should be set correctly`() = runTest {

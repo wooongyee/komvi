@@ -16,27 +16,14 @@ import kotlinx.coroutines.flow.StateFlow
 interface MviContainerHost<S : ViewState, I : Intent, E : SideEffect> {
 
     /**
-     * The MVI container instance.
-     * Protected to enforce MVI pattern - state changes must go through Intent handlers only.
-     */
-    val container: MviContainer<S, I, E>
-        get() = throw UnsupportedOperationException("Direct container access is not allowed. Use intentScope in Intent handlers.")
-
-    /**
-     * Shortcut property for accessing current state.
+     * Current state as a hot [StateFlow].
+     * Exposed to the View layer for observation.
      */
     val state: StateFlow<S>
 
     /**
-     * Shortcut property for accessing side effects.
+     * Side effects as a hot [Flow].
+     * Exposed to the View layer for one-time event consumption.
      */
     val sideEffect: Flow<E>
-
-    /**
-     * Creates an Intent scope for processing intents.
-     * This should only be called from Intent handler functions.
-     *
-     * @param block The intent processing block with [IntentScope] as receiver
-     */
-    fun intentScope(block: suspend IntentScope<S, I, E>.() -> Unit)
 }

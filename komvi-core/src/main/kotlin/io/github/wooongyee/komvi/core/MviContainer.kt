@@ -12,31 +12,17 @@ import kotlinx.coroutines.flow.StateFlow
  * This is the core component of the MVI pattern that:
  * - Holds the current UI state as a [StateFlow]
  * - Emits one-time side effects as a [Flow]
- * - Processes intents through the [intent] function
+ * - Processes intents internally (not directly accessible)
+ *
+ * This is a sealed interface to enforce that state changes can only happen
+ * through intentScope in MviViewModel, preventing direct manipulation from
+ * the View layer.
  *
  * @param S The type of [ViewState]
  * @param I The type of [Intent]
  * @param E The type of [SideEffect]
- *
- * Example:
- * ```
- * class LoginViewModel : ViewModel() {
- *     private val container = container<LoginState, LoginIntent, LoginEffect>(
- *         initialState = LoginState(),
- *         scope = viewModelScope
- *     )
- *
- *     val state: StateFlow<LoginState> = container.state
- *     val sideEffect: Flow<LoginEffect> = container.sideEffect
- *
- *     fun onLoginClick() = container.intent {
- *         reduce { copy(isLoading = true) }
- *         // ... perform login
- *     }
- * }
- * ```
  */
-interface MviContainer<S : ViewState, I : Intent, E : SideEffect> {
+sealed interface MviContainer<S : ViewState, I : Intent, E : SideEffect> {
 
     /**
      * Current state as a hot [StateFlow].
@@ -49,26 +35,6 @@ interface MviContainer<S : ViewState, I : Intent, E : SideEffect> {
      * Represents one-time events that should be consumed only once.
      */
     val sideEffect: Flow<E>
-
-    /**
-     * Executes an intent block within [IntentScope].
-     *
-     * Inside the block, you can:
-     * - Access current state via [IntentScope.state]
-     * - Update state via [IntentScope.reduce]
-     * - Post side effects via [IntentScope.postSideEffect]
-     *
-     * @param block The intent processing block with [IntentScope] as receiver
-     *
-     * Example:
-     * ```
-     * container.intent {
-     *     reduce { copy(email = "test@example.com") }
-     *     postSideEffect(LoginEffect.ShowToast("Email updated"))
-     * }
-     * ```
-     */
-    fun intent(block: suspend IntentScope<S, I, E>.() -> Unit)
 }
 
 /**
@@ -90,4 +56,20 @@ fun <S : ViewState, I : Intent, E : SideEffect> container(
     dispatcher: CoroutineDispatcher = Dispatchers.Default
 ): MviContainer<S, I, E> {
     return MviContainerImpl(initialState, scope, debugMode, dispatcher)
+}
+
+/**
+ * Executes an intent block on the container.
+ * This is a public inline function that allows MviViewModel to call the internal intent() function.
+ *
+ * **For internal use only.** Should only be called from MviViewModel.intentScope.
+ *
+ * @param container The MviContainer instance
+ * @param block The intent processing block with [IntentScope] as receiver
+ */
+inline fun <S : ViewState, I : Intent, E : SideEffect> executeContainerIntent(
+    container: MviContainer<S, I, E>,
+    noinline block: suspend IntentScope<S, I, E>.() -> Unit
+) {
+    (container as MviContainerImpl).intent(block)
 }

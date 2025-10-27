@@ -14,6 +14,9 @@ import kotlinx.coroutines.launch
 /**
  * Internal implementation of [MviContainer].
  *
+ * **For internal use only.** Application code should not directly instantiate this class.
+ * Use the [container] factory function instead.
+ *
  * Provides thread-safe state management using [MutableStateFlow]
  * and side effect handling using [MutableSharedFlow].
  *
@@ -25,7 +28,7 @@ import kotlinx.coroutines.launch
  * @param I The type of [Intent]
  * @param E The type of [SideEffect]
  */
-internal class MviContainerImpl<S : ViewState, I : Intent, E : SideEffect>(
+class MviContainerImpl<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S,
     private val scope: CoroutineScope,
     internal val debugMode: Boolean = false,
@@ -41,7 +44,16 @@ internal class MviContainerImpl<S : ViewState, I : Intent, E : SideEffect>(
     )
     override val sideEffect = _sideEffect.asSharedFlow()
 
-    override fun intent(block: suspend IntentScope<S, I, E>.() -> Unit) {
+    /**
+     * Executes an intent block within [IntentScope].
+     *
+     * **For internal use only.** This function should only be called from MviViewModel.intentScope.
+     * Direct calls from application code will bypass MVI pattern enforcement.
+     *
+     * @param block The intent processing block with [IntentScope] as receiver
+     */
+    @PublishedApi
+    internal fun intent(block: suspend IntentScope<S, I, E>.() -> Unit) {
         scope.launch(dispatcher) {
             IntentScope(this@MviContainerImpl).block()
         }

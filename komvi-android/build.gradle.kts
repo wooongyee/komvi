@@ -1,6 +1,7 @@
 plugins {
     id("komvi.android.library")
     id("komvi.kover")
+    id("kotlin-parcelize")
 }
 
 android {

@@ -5,13 +5,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.wooongyee.komvi.core.Intent
+import io.github.wooongyee.komvi.core.IntentScope
 import io.github.wooongyee.komvi.core.MviContainer
 import io.github.wooongyee.komvi.core.MviContainerHost
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
 import io.github.wooongyee.komvi.core.container
+import io.github.wooongyee.komvi.core.executeContainerIntent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -19,6 +23,9 @@ import kotlinx.coroutines.launch
  *
  * This abstract class provides MVI container functionality tied to the ViewModel's lifecycle scope.
  * The container is automatically cleaned up when the ViewModel is cleared.
+ *
+ * State changes can only happen through [intentScope] which is protected, preventing
+ * direct manipulation from the View layer and enforcing the MVI pattern.
  *
  * Note: If using savedStateHandle, the state (S) must implement Parcelable.
  * Use @Parcelize annotation for easy implementation.
@@ -40,7 +47,8 @@ abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel(), MviContainerHost<S, I, E> {
 
-    private val _container: MviContainer<S, I, E> = container(
+    @PublishedApi
+    internal val _container: MviContainer<S, I, E> = container(
         initialState = savedStateHandle?.get<S>(stateKey) ?: initialState,
         scope = viewModelScope,
         debugMode = debugMode,
@@ -63,13 +71,17 @@ abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
         }
     }
 
-    override val container: MviContainer<S, I, E>
-        get() = throw UnsupportedOperationException("Direct container access is not allowed. Use intentScope in Intent handlers.")
+    override val state: StateFlow<S> get() = _container.state
+    override val sideEffect: Flow<E> get() = _container.sideEffect
 
-    override val state get() = _container.state
-    override val sideEffect get() = _container.sideEffect
-
-    override fun intentScope(block: suspend io.github.wooongyee.komvi.core.IntentScope<S, I, E>.() -> Unit) {
-        _container.intent(block)
+    /**
+     * Creates an Intent scope for processing intents.
+     * This function is protected to prevent direct calls from the View layer.
+     * Only ViewModel internal functions should use this.
+     *
+     * @param block The intent processing block with [IntentScope] as receiver
+     */
+    protected inline fun intentScope(noinline block: suspend IntentScope<S, I, E>.() -> Unit) {
+        executeContainerIntent(_container, block)
     }
 }
