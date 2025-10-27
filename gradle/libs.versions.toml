@@ -16,6 +16,7 @@ ksp = "2.0.21-1.0.28"
 kotlinpoet = "1.18.1"
 kover = "0.8.3"
 turbine = "1.1.0"
+kotlinCompileTesting = "0.5.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +37,8 @@ kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.re
 # Test utilities
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 lifecycle-runtime-testing = { group = "androidx.lifecycle", name = "lifecycle-runtime-testing", version.ref = "lifecycle" }
+kotlin-compile-testing = { group = "dev.zacsweers.kctfork", name = "core", version.ref = "kotlinCompileTesting" }
+kotlin-compile-testing-ksp = { group = "dev.zacsweers.kctfork", name = "ksp", version.ref = "kotlinCompileTesting" }
 
 # AndroidX Lifecycle
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
@@ -46,6 +49,8 @@ lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-ru
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 
 # KSP
 ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }

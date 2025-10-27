@@ -24,7 +24,5 @@ dependencies {
     api(libs.compose.ui)
     api(libs.lifecycle.runtime.compose)
 
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.kotlin.test)
-    testImplementation(libs.turbine)
+    // No tests needed - simple wrapper functions
 }
