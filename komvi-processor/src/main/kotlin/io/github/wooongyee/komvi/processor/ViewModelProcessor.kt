@@ -271,11 +271,13 @@ class ViewModelProcessor(
 
                     if (measurePerformance) {
                         addStatement("val startTime = System.currentTimeMillis()")
-                        addStatement("$handlerName(intent)")
+                        addStatement("val logicBlock = $handlerName(intent)")
+                        addStatement("this.executeHandler(logicBlock)")
                         addStatement("val duration = System.currentTimeMillis() - startTime")
                         addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Performance: $handlerName took ", "ms")
                     } else {
-                        addStatement("$handlerName(intent)")
+                        addStatement("val logicBlock = $handlerName(intent)")
+                        addStatement("this.executeHandler(logicBlock)")
                     }
 
                     endControlFlow()
@@ -304,11 +306,13 @@ class ViewModelProcessor(
 
                     if (measurePerformance) {
                         addStatement("val startTime = System.currentTimeMillis()")
-                        addStatement("$handlerName(intent)")
+                        addStatement("val logicBlock = $handlerName(intent)")
+                        addStatement("this.executeHandler(logicBlock)")
                         addStatement("val duration = System.currentTimeMillis() - startTime")
                         addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Performance: $handlerName took ", "ms")
                     } else {
-                        addStatement("$handlerName(intent)")
+                        addStatement("val logicBlock = $handlerName(intent)")
+                        addStatement("this.executeHandler(logicBlock)")
                     }
 
                     endControlFlow()

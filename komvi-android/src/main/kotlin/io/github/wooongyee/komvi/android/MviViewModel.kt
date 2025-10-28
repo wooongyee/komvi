@@ -75,13 +75,30 @@ abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     override val sideEffect: Flow<E> get() = _container.sideEffect
 
     /**
-     * Creates an Intent scope for processing intents.
-     * This function is protected to prevent direct calls from the View layer.
-     * Only ViewModel internal functions should use this.
+     * DSL helper function for defining intent handlers.
+     * Wraps handler logic and returns it for KSP validation.
+     *
+     * Usage:
+     * ```
+     * @ViewActionHandler
+     * internal fun handleSomeAction(intent: SomeIntent) = handler {
+     *     reduce { copy(newState) }
+     *     postSideEffect(SomeEffect)
+     * }
+     * ```
      *
      * @param block The intent processing block with [IntentScope] as receiver
+     * @return The handler logic
      */
-    protected inline fun intentScope(noinline block: suspend IntentScope<S, I, E>.() -> Unit) {
+    protected fun handler(block: suspend IntentScope<S, I, E>.() -> Unit): suspend IntentScope<S, I, E>.() -> Unit = block
+
+    /**
+     * Executes an intent handler block within IntentScope.
+     * This function is called by KSP-generated dispatch functions.
+     *
+     * @param block The intent handler block to execute
+     */
+    protected inline fun executeHandler(noinline block: suspend IntentScope<S, I, E>.() -> Unit) {
         executeContainerIntent(_container, block)
     }
 }

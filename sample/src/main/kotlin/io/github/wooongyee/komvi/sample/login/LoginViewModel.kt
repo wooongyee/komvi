@@ -19,23 +19,23 @@ class LoginViewModel(
 ) {
 
     @ViewActionHandler(log = true)
-    internal fun handleEmailChanged(intent: LoginIntent.ViewAction.EmailChanged) = intentScope {
+    internal fun handleEmailChanged(intent: LoginIntent.ViewAction.EmailChanged) = handler {
         reduce { copy(email = intent.email, errorMessage = null) }
     }
 
     @ViewActionHandler(log = true)
-    internal fun handlePasswordChanged(intent: LoginIntent.ViewAction.PasswordChanged) = intentScope {
+    internal fun handlePasswordChanged(intent: LoginIntent.ViewAction.PasswordChanged) = handler {
         reduce { copy(password = intent.password, errorMessage = null) }
     }
 
     @ViewActionHandler(log = true, track = true, measurePerformance = true)
-    internal fun handleLoginClicked(intent: LoginIntent.ViewAction.LoginClicked) = intentScope {
+    internal fun handleLoginClicked(intent: LoginIntent.ViewAction.LoginClicked) = handler {
         val currentEmail = state.email
         val currentPassword = state.password
 
         if (currentEmail.isBlank() || currentPassword.isBlank()) {
             reduce { copy(errorMessage = "Email and password cannot be empty") }
-            return@intentScope
+            return@handler
         }
 
         reduce { copy(isLoading = true, errorMessage = null) }
@@ -51,14 +51,14 @@ class LoginViewModel(
     }
 
     @InternalHandler
-    internal fun handleOnLoginSuccess(intent: LoginIntent.Internal.OnLoginSuccess) = intentScope {
+    internal fun handleOnLoginSuccess(intent: LoginIntent.Internal.OnLoginSuccess) = handler {
         reduce { copy(isLoading = false) }
         postSideEffect(LoginSideEffect.NavigateToHome)
         postSideEffect(LoginSideEffect.ShowToast("Login successful!"))
     }
 
     @InternalHandler
-    internal fun handleOnLoginFailure(intent: LoginIntent.Internal.OnLoginFailure) = intentScope {
+    internal fun handleOnLoginFailure(intent: LoginIntent.Internal.OnLoginFailure) = handler {
         reduce {
             copy(
                 isLoading = false,
