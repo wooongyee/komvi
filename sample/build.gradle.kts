@@ -14,6 +14,7 @@ android {
         targetSdk = property("android.compileSdk").toString().toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
@@ -28,6 +29,7 @@ dependencies {
     implementation(project(":komvi-compose"))
     implementation(project(":komvi-annotations"))
     ksp(project(":komvi-processor"))
+    kspAndroidTest(project(":komvi-processor"))
 
     // Compose BOM
     implementation(platform(libs.compose.bom))
@@ -47,4 +49,12 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.activity:activity-compose:1.9.3")
+
+    // AndroidTest dependencies for integration tests
+    androidTestImplementation(libs.kotlin.test)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.turbine)
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:rules:1.6.1")
 }
