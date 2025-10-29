@@ -2,6 +2,7 @@ package io.github.wooongyee.komvi.android
 
 import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
+import io.github.wooongyee.komvi.annotations.InternalKomviApi
 import io.github.wooongyee.komvi.core.Intent
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
@@ -20,7 +21,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(InternalKomviApi::class, ExperimentalCoroutinesApi::class)
 class MviViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
@@ -59,20 +60,20 @@ class MviViewModelTest {
         debugMode = debugMode,
         dispatcher = testDispatcher
     ) {
-        // Public function that uses protected intentScope
-        fun increment() = intentScope {
+        // Public function that executes handlers
+        fun increment() = executeHandler {
             reduce { copy(count = count + 1) }
         }
 
-        fun decrement() = intentScope {
+        fun decrement() = executeHandler {
             reduce { copy(count = count - 1) }
         }
 
-        fun emitEffect() = intentScope {
+        fun emitEffect() = executeHandler {
             postSideEffect(TestEffect.ShowToast)
         }
 
-        fun accessState() = intentScope {
+        fun accessState() = executeHandler {
             val currentCount = state.count
             reduce { copy(count = currentCount + 10) }
         }
@@ -86,7 +87,7 @@ class MviViewModelTest {
     }
 
     @Test
-    fun `intentScope should allow state updates via reduce`() = runTest(testDispatcher) {
+    fun `handler should allow state updates via reduce`() = runTest(testDispatcher) {
         val viewModel = TestViewModel()
 
         viewModel.increment()
@@ -96,7 +97,7 @@ class MviViewModelTest {
     }
 
     @Test
-    fun `multiple intentScope calls should update state sequentially`() = runTest(testDispatcher) {
+    fun `multiple handler calls should update state sequentially`() = runTest(testDispatcher) {
         val viewModel = TestViewModel()
 
         viewModel.increment()
@@ -108,7 +109,7 @@ class MviViewModelTest {
     }
 
     @Test
-    fun `intentScope should allow posting side effects`() = runTest(testDispatcher) {
+    fun `handler should allow posting side effects`() = runTest(testDispatcher) {
         val viewModel = TestViewModel()
 
         val effects = mutableListOf<TestEffect>()
@@ -125,7 +126,7 @@ class MviViewModelTest {
     }
 
     @Test
-    fun `intentScope should allow accessing current state`() = runTest(testDispatcher) {
+    fun `handler should allow accessing current state`() = runTest(testDispatcher) {
         val viewModel = TestViewModel(initialState = TestState(count = 5))
 
         viewModel.accessState()
@@ -209,7 +210,7 @@ class MviViewModelTest {
     }
 
     @Test
-    fun `concurrent intentScope calls should be thread-safe`() = runTest(testDispatcher) {
+    fun `concurrent handler calls should be thread-safe`() = runTest(testDispatcher) {
         val viewModel = TestViewModel()
 
         repeat(100) {

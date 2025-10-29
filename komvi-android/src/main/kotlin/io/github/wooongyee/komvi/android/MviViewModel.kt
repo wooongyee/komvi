@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.wooongyee.komvi.annotations.InternalKomviApi
 import io.github.wooongyee.komvi.core.Intent
 import io.github.wooongyee.komvi.core.IntentScope
 import io.github.wooongyee.komvi.core.MviContainer
@@ -94,11 +95,14 @@ abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
 
     /**
      * Executes an intent handler block within IntentScope.
+     *
      * This function is called by KSP-generated dispatch functions.
+     * Do not call this function directly from your application code.
      *
      * @param block The intent handler block to execute
      */
-    protected inline fun executeHandler(noinline block: suspend IntentScope<S, I, E>.() -> Unit) {
+    @InternalKomviApi
+    fun executeHandler(block: suspend IntentScope<S, I, E>.() -> Unit) {
         executeContainerIntent(_container, block)
     }
 }

@@ -2,6 +2,7 @@ package io.github.wooongyee.komvi.android
 
 import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
+import io.github.wooongyee.komvi.annotations.InternalKomviApi
 import io.github.wooongyee.komvi.core.Intent
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
@@ -30,7 +31,7 @@ import kotlin.test.assertTrue
  * - Coroutine scope cancellation
  * - Custom dispatcher behavior
  */
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(InternalKomviApi::class, ExperimentalCoroutinesApi::class)
 class MviViewModelEdgeCaseTest {
 
     private val testDispatcher = StandardTestDispatcher()
@@ -75,23 +76,23 @@ class MviViewModelEdgeCaseTest {
         debugMode = debugMode,
         dispatcher = testDispatcher
     ) {
-        fun increment() = intentScope {
+        fun increment() = executeHandler {
             reduce { copy(count = count + 1) }
         }
 
-        fun updateName(newName: String) = intentScope {
+        fun updateName(newName: String) = executeHandler {
             reduce { copy(name = newName) }
         }
 
-        fun setLoading(loading: Boolean) = intentScope {
+        fun setLoading(loading: Boolean) = executeHandler {
             reduce { copy(isLoading = loading) }
         }
 
-        fun emitEffect(message: String) = intentScope {
+        fun emitEffect(message: String) = executeHandler {
             postSideEffect(TestEffect.ShowMessage(message))
         }
 
-        fun performLongOperation() = intentScope {
+        fun performLongOperation() = executeHandler {
             reduce { copy(isLoading = true) }
             // Simulate long operation
             delay(1000)
@@ -99,7 +100,7 @@ class MviViewModelEdgeCaseTest {
             postSideEffect(TestEffect.Complete)
         }
 
-        fun multipleStateChanges() = intentScope {
+        fun multipleStateChanges() = executeHandler {
             reduce { copy(count = 1) }
             reduce { copy(name = "First") }
             reduce { copy(isLoading = true) }

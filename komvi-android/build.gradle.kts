@@ -14,6 +14,7 @@ android {
 
 dependencies {
     api(project(":komvi-core"))
+    api(project(":komvi-annotations"))
     api(libs.lifecycle.viewmodel.ktx)
     api(libs.lifecycle.viewmodel.savedstate)
     api(libs.kotlinx.coroutines.android)
