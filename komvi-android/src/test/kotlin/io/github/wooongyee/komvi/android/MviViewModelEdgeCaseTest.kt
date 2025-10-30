@@ -77,36 +77,54 @@ class MviViewModelEdgeCaseTest {
     ) {
         override val dispatcher = testDispatcher
 
-        fun increment() = executeHandler {
-            reduce { copy(count = count + 1) }
-        }
+        fun increment() = executeHandler(
+            block = {
+                reduce { copy(count = count + 1) }
+            },
+            handlerKey = "TestViewModel.increment"
+        )
 
-        fun updateName(newName: String) = executeHandler {
-            reduce { copy(name = newName) }
-        }
+        fun updateName(newName: String) = executeHandler(
+            block = {
+                reduce { copy(name = newName) }
+            },
+            handlerKey = "TestViewModel.updateName"
+        )
 
-        fun setLoading(loading: Boolean) = executeHandler {
-            reduce { copy(isLoading = loading) }
-        }
+        fun setLoading(loading: Boolean) = executeHandler(
+            block = {
+                reduce { copy(isLoading = loading) }
+            },
+            handlerKey = "TestViewModel.setLoading"
+        )
 
-        fun emitEffect(message: String) = executeHandler {
-            postSideEffect(TestEffect.ShowMessage(message))
-        }
+        fun emitEffect(message: String) = executeHandler(
+            block = {
+                postSideEffect(TestEffect.ShowMessage(message))
+            },
+            handlerKey = "TestViewModel.emitEffect"
+        )
 
-        fun performLongOperation() = executeHandler {
-            reduce { copy(isLoading = true) }
-            // Simulate long operation
-            delay(1000)
-            reduce { copy(isLoading = false, count = count + 1) }
-            postSideEffect(TestEffect.Complete)
-        }
+        fun performLongOperation() = executeHandler(
+            block = {
+                reduce { copy(isLoading = true) }
+                // Simulate long operation
+                delay(1000)
+                reduce { copy(isLoading = false, count = count + 1) }
+                postSideEffect(TestEffect.Complete)
+            },
+            handlerKey = "TestViewModel.performLongOperation"
+        )
 
-        fun multipleStateChanges() = executeHandler {
-            reduce { copy(count = 1) }
-            reduce { copy(name = "First") }
-            reduce { copy(isLoading = true) }
-            reduce { copy(count = 2, name = "Second", isLoading = false) }
-        }
+        fun multipleStateChanges() = executeHandler(
+            block = {
+                reduce { copy(count = 1) }
+                reduce { copy(name = "First") }
+                reduce { copy(isLoading = true) }
+                reduce { copy(count = 2, name = "Second", isLoading = false) }
+            },
+            handlerKey = "TestViewModel.multipleStateChanges"
+        )
     }
 
     // ============ ViewModel Lifecycle Tests ============

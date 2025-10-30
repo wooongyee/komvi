@@ -10,6 +10,8 @@ import io.github.wooongyee.komvi.core.IntentScope
 import io.github.wooongyee.komvi.core.MviContainer
 import io.github.wooongyee.komvi.core.MviContainerHost
 import io.github.wooongyee.komvi.core.MviViewModelMarker
+import io.github.wooongyee.komvi.core.IntentExecutionStrategies
+import io.github.wooongyee.komvi.core.IntentExecutionStrategy
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
 import io.github.wooongyee.komvi.core.container
@@ -74,6 +76,17 @@ abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     protected open val dispatcher: CoroutineDispatcher
         get() = Dispatchers.Main.immediate
 
+    /**
+     * Intent execution strategies for different coroutine execution modes.
+     * Maps ExecutionMode enum names to their corresponding strategy implementations.
+     */
+    private val executionStrategies: Map<String, IntentExecutionStrategy> = mapOf(
+        "CANCEL_PREVIOUS" to IntentExecutionStrategies.CancelPrevious(),
+        "DROP" to IntentExecutionStrategies.Drop(),
+        "QUEUE" to IntentExecutionStrategies.Queue(),
+        "PARALLEL" to IntentExecutionStrategies.Parallel()
+    )
+
     @PublishedApi
     internal val _container: MviContainer<S, I, E> by lazy {
         // Validate Parcelable requirement before creating container
@@ -129,9 +142,21 @@ abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
      * Do not call this function directly from your application code.
      *
      * @param block The intent handler block to execute
+     * @param executionMode ExecutionMode enum constant name (e.g., "PARALLEL", "DROP")
+     * @param handlerKey Unique key identifying this handler (for job tracking)
      */
     @InternalKomviApi
-    fun executeHandler(block: suspend IntentScope<S, I, E>.() -> Unit) {
-        executeContainerIntent(_container, block)
+    fun executeHandler(
+        block: suspend IntentScope<S, I, E>.() -> Unit,
+        executionMode: String = "PARALLEL",
+        handlerKey: String
+    ) {
+        val strategy = executionStrategies[executionMode] ?: executionStrategies["PARALLEL"]!!
+        strategy.execute(
+            scope = viewModelScope,
+            key = handlerKey
+        ) {
+            executeContainerIntent(_container, block)
+        }
     }
 }

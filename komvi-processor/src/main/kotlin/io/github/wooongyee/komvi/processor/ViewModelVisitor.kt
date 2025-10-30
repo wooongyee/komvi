@@ -3,6 +3,7 @@ package io.github.wooongyee.komvi.processor
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 
 /**
@@ -11,7 +12,8 @@ import com.google.devtools.ksp.symbol.KSVisitorVoid
 internal data class HandlerInfo(
     val function: KSFunctionDeclaration,
     val annotation: KSAnnotation,
-    val isViewAction: Boolean
+    val isViewAction: Boolean,
+    val executionMode: String // ExecutionMode enum constant name (PARALLEL, DROP, etc.)
 )
 
 /**
@@ -38,11 +40,30 @@ internal class ViewModelVisitor : KSVisitorVoid() {
 
         when {
             viewActionAnnotation != null -> {
-                handlers.add(HandlerInfo(function, viewActionAnnotation, isViewAction = true))
+                val executionMode = extractExecutionMode(viewActionAnnotation)
+                handlers.add(HandlerInfo(function, viewActionAnnotation, isViewAction = true, executionMode))
             }
             internalAnnotation != null -> {
-                handlers.add(HandlerInfo(function, internalAnnotation, isViewAction = false))
+                val executionMode = extractExecutionMode(internalAnnotation)
+                handlers.add(HandlerInfo(function, internalAnnotation, isViewAction = false, executionMode))
             }
+        }
+    }
+
+    /**
+     * Extracts the executionMode parameter value from handler annotation.
+     * Returns the enum constant name (e.g., "PARALLEL", "DROP", etc.)
+     */
+    private fun extractExecutionMode(annotation: KSAnnotation): String {
+        val executionModeArg = annotation.arguments.find {
+            it.name?.asString() == "executionMode"
+        }
+
+        return if (executionModeArg != null) {
+            val type = executionModeArg.value as? KSType
+            type?.declaration?.simpleName?.asString() ?: "PARALLEL"
+        } else {
+            "PARALLEL" // Default value
         }
     }
 }

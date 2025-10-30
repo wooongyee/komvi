@@ -8,9 +8,12 @@ package io.github.wooongyee.komvi.annotations
  *
  * @param debug Enable debug logging for this intent handler.
  *              When enabled, logs "Intent received" and "Intent completed" with execution time.
+ * @param executionMode Execution mode for this handler (coroutine execution strategy).
+ *                      핸들러의 실행 모드 (코루틴 실행 전략).
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)
 annotation class ViewActionHandler(
-    val debug: Boolean = false
+    val debug: Boolean = false,
+    val executionMode: ExecutionMode = ExecutionMode.PARALLEL
 )

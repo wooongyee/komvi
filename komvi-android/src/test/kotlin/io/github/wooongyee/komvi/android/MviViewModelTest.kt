@@ -62,22 +62,34 @@ class MviViewModelTest {
         override val dispatcher = testDispatcher
 
         // Public function that executes handlers
-        fun increment() = executeHandler {
-            reduce { copy(count = count + 1) }
-        }
+        fun increment() = executeHandler(
+            block = {
+                reduce { copy(count = count + 1) }
+            },
+            handlerKey = "TestViewModel.increment"
+        )
 
-        fun decrement() = executeHandler {
-            reduce { copy(count = count - 1) }
-        }
+        fun decrement() = executeHandler(
+            block = {
+                reduce { copy(count = count - 1) }
+            },
+            handlerKey = "TestViewModel.decrement"
+        )
 
-        fun emitEffect() = executeHandler {
-            postSideEffect(TestEffect.ShowToast)
-        }
+        fun emitEffect() = executeHandler(
+            block = {
+                postSideEffect(TestEffect.ShowToast)
+            },
+            handlerKey = "TestViewModel.emitEffect"
+        )
 
-        fun accessState() = executeHandler {
-            val currentCount = state.count
-            reduce { copy(count = currentCount + 10) }
-        }
+        fun accessState() = executeHandler(
+            block = {
+                val currentCount = state.count
+                reduce { copy(count = currentCount + 10) }
+            },
+            handlerKey = "TestViewModel.accessState"
+        )
     }
 
     @Test

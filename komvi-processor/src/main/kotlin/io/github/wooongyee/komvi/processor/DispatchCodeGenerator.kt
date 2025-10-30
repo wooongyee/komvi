@@ -89,6 +89,8 @@ internal class DispatchCodeGenerator(
 
                     val debug = handlerInfo.annotation.arguments
                         .find { it.name?.asString() == "debug" }?.value as? Boolean ?: false
+                    val executionMode = handlerInfo.executionMode
+                    val handlerKey = "$viewModelName.$intentSubclassName"
 
                     beginControlFlow("is $intentName.ViewAction.$intentSubclassName ->")
 
@@ -96,12 +98,12 @@ internal class DispatchCodeGenerator(
                         addStatement("android.util.Log.d(%S, %S + intent)", viewModelName, "Intent received: ")
                         addStatement("val startTime = System.currentTimeMillis()")
                         addStatement("val logicBlock = $handlerName(intent)")
-                        addStatement("this.executeHandler(logicBlock)")
+                        addStatement("this.executeHandler(logicBlock, %S, %S)", executionMode, handlerKey)
                         addStatement("val duration = System.currentTimeMillis() - startTime")
                         addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Intent completed: $intentSubclassName (took ", "ms)")
                     } else {
                         addStatement("val logicBlock = $handlerName(intent)")
-                        addStatement("this.executeHandler(logicBlock)")
+                        addStatement("this.executeHandler(logicBlock, %S, %S)", executionMode, handlerKey)
                     }
 
                     endControlFlow()
@@ -139,6 +141,8 @@ internal class DispatchCodeGenerator(
 
                     val debug = handlerInfo.annotation.arguments
                         .find { it.name?.asString() == "debug" }?.value as? Boolean ?: false
+                    val executionMode = handlerInfo.executionMode
+                    val handlerKey = "$viewModelName.$intentSubclassName"
 
                     beginControlFlow("is $intentName.Internal.$intentSubclassName ->")
 
@@ -146,12 +150,12 @@ internal class DispatchCodeGenerator(
                         addStatement("android.util.Log.d(%S, %S + intent)", viewModelName, "Intent received: ")
                         addStatement("val startTime = System.currentTimeMillis()")
                         addStatement("val logicBlock = $handlerName(intent)")
-                        addStatement("this.executeHandler(logicBlock)")
+                        addStatement("this.executeHandler(logicBlock, %S, %S)", executionMode, handlerKey)
                         addStatement("val duration = System.currentTimeMillis() - startTime")
                         addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Intent completed: $intentSubclassName (took ", "ms)")
                     } else {
                         addStatement("val logicBlock = $handlerName(intent)")
-                        addStatement("this.executeHandler(logicBlock)")
+                        addStatement("this.executeHandler(logicBlock, %S, %S)", executionMode, handlerKey)
                     }
 
                     endControlFlow()

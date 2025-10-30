@@ -53,7 +53,11 @@ abstract class FakeMviViewModel<S : ViewState, I : Intent, E : SideEffect> : Mvi
      * Executes an intent handler block (mimics the real MviViewModel).
      * This is called by KSP-generated dispatch functions.
      */
-    fun executeHandler(block: suspend IntentScope<S, I, E>.() -> Unit) {
+    fun executeHandler(
+        block: suspend IntentScope<S, I, E>.() -> Unit,
+        executionMode: String = "PARALLEL",
+        handlerKey: String
+    ) {
         // No-op for compile testing
     }
 }
