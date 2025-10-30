@@ -5,8 +5,6 @@ import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.configureKsp
 import com.tschuchort.compiletesting.symbolProcessorProviders
 import com.tschuchort.compiletesting.kspSourcesDir
-import com.tschuchort.compiletesting.kspWithCompilation
-import com.tschuchort.compiletesting.kspIncremental
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -49,7 +47,6 @@ class ViewModelProcessorTest {
                     """.trimIndent()
                 )
             )
-            // 0.6.0 API: symbolProcessorProviders 프로퍼티 사용 (자동으로 componentRegistrars에 등록됨)
 
             configureKsp(useKsp2 = true) {
                 symbolProcessorProviders += provider

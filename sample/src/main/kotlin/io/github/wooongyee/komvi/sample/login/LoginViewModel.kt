@@ -4,18 +4,14 @@ import androidx.lifecycle.SavedStateHandle
 import io.github.wooongyee.komvi.android.MviViewModel
 import io.github.wooongyee.komvi.annotations.ViewActionHandler
 import io.github.wooongyee.komvi.annotations.InternalHandler
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 
 class LoginViewModel(
-    dispatcher: CoroutineDispatcher = Dispatchers.Default,
     savedStateHandle: SavedStateHandle? = null
 ) : MviViewModel<LoginViewState, LoginIntent, LoginSideEffect>(
     initialState = LoginViewState(),
     savedStateHandle = savedStateHandle,
-    debugMode = true,
-    dispatcher = dispatcher
+    debugMode = true
 ) {
 
     @ViewActionHandler(debug = true)

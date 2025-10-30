@@ -47,7 +47,6 @@ class LoginViewModelAdvancedTest {
 
         // ViewModel 1: Change state
         val viewModel1 = LoginViewModel(
-            dispatcher = testDispatcher,
             savedStateHandle = savedStateHandle
         )
         viewModel1.dispatch(LoginIntent.ViewAction.EmailChanged("saved@test.com"))
@@ -57,7 +56,6 @@ class LoginViewModelAdvancedTest {
 
         // ViewModel 2: Recreated (simulates process death/recreation)
         val viewModel2 = LoginViewModel(
-            dispatcher = testDispatcher,
             savedStateHandle = savedStateHandle
         )
 
@@ -72,7 +70,6 @@ class LoginViewModelAdvancedTest {
 
         // ViewModel 1: Create complex state
         val viewModel1 = LoginViewModel(
-            dispatcher = testDispatcher,
             savedStateHandle = savedStateHandle
         )
         viewModel1.dispatch(LoginIntent.ViewAction.EmailChanged("complex@test.com"))
@@ -89,7 +86,6 @@ class LoginViewModelAdvancedTest {
 
         // ViewModel 2: Recreated
         val viewModel2 = LoginViewModel(
-            dispatcher = testDispatcher,
             savedStateHandle = savedStateHandle
         )
 
@@ -103,7 +99,6 @@ class LoginViewModelAdvancedTest {
     fun savedStateHandle_updatesOnEveryStateChange() = runTest {
         val savedStateHandle = SavedStateHandle()
         val viewModel = LoginViewModel(
-            dispatcher = testDispatcher,
             savedStateHandle = savedStateHandle
         )
 
@@ -136,7 +131,6 @@ class LoginViewModelAdvancedTest {
         val savedStateHandle = SavedStateHandle() // Empty
 
         val viewModel = LoginViewModel(
-            dispatcher = testDispatcher,
             savedStateHandle = savedStateHandle
         )
 
@@ -158,7 +152,6 @@ class LoginViewModelAdvancedTest {
         )
 
         val viewModel = LoginViewModel(
-            dispatcher = testDispatcher,
             savedStateHandle = savedStateHandle
         )
 
@@ -173,7 +166,7 @@ class LoginViewModelAdvancedTest {
 
     @Test
     fun concurrentDispatches_processedSequentially() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
         val emails = mutableListOf<String>()
 
         val job = launch {
@@ -196,7 +189,7 @@ class LoginViewModelAdvancedTest {
 
     @Test
     fun concurrentDispatches_finalStateConsistent() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Launch 100 concurrent email changes
         repeat(100) { index ->
@@ -214,7 +207,7 @@ class LoginViewModelAdvancedTest {
 
     @Test
     fun concurrentDispatches_withDifferentIntents() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Mix different intent types concurrently
         launch { viewModel.dispatch(LoginIntent.ViewAction.EmailChanged("email@test.com")) }
@@ -232,7 +225,7 @@ class LoginViewModelAdvancedTest {
 
     @Test
     fun concurrentDispatches_viewActionAndInternal() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Concurrent ViewAction and Internal dispatches
         launch {
@@ -256,7 +249,7 @@ class LoginViewModelAdvancedTest {
 
     @Test
     fun rapidSequentialDispatches_allProcessed() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
         val stateChanges = mutableListOf<String>()
 
         val job = launch {
@@ -278,7 +271,7 @@ class LoginViewModelAdvancedTest {
 
     @Test
     fun rapidDispatches_stateFlowDeduplicates() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
         val stateChanges = mutableListOf<String>()
 
         val job = launch {

@@ -57,9 +57,10 @@ class MviViewModelTest {
     ) : MviViewModel<TestState, TestIntent, TestEffect>(
         initialState = initialState,
         savedStateHandle = savedStateHandle,
-        debugMode = debugMode,
-        dispatcher = testDispatcher
+        debugMode = debugMode
     ) {
+        override val dispatcher = testDispatcher
+
         // Public function that executes handlers
         fun increment() = executeHandler {
             reduce { copy(count = count + 1) }
@@ -166,12 +167,16 @@ class MviViewModelTest {
 
         class NonParcelableViewModel : MviViewModel<NonParcelableState, TestIntent, TestEffect>(
             initialState = NonParcelableState(),
-            savedStateHandle = SavedStateHandle(),
-            dispatcher = testDispatcher
-        )
+            savedStateHandle = SavedStateHandle()
+        ) {
+            override val dispatcher = testDispatcher
+        }
 
+        val viewModel = NonParcelableViewModel()
+
+        // Exception should be thrown when accessing the container (lazy initialization)
         assertFailsWith<IllegalArgumentException> {
-            NonParcelableViewModel()
+            viewModel.state
         }
     }
 

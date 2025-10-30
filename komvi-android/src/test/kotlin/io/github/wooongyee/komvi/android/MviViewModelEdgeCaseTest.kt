@@ -73,9 +73,10 @@ class MviViewModelEdgeCaseTest {
         initialState = initialState,
         savedStateHandle = savedStateHandle,
         stateKey = stateKey,
-        debugMode = debugMode,
-        dispatcher = testDispatcher
+        debugMode = debugMode
     ) {
+        override val dispatcher = testDispatcher
+
         fun increment() = executeHandler {
             reduce { copy(count = count + 1) }
         }

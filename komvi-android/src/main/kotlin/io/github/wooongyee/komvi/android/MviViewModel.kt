@@ -39,35 +39,63 @@ import kotlinx.coroutines.launch
  * @param savedStateHandle Optional SavedStateHandle for state persistence (requires S to be Parcelable)
  * @param stateKey Key for saving state in SavedStateHandle (default: "mvi_state")
  * @param debugMode Enable debug logging for state changes (default: false, use BuildConfig.DEBUG in production)
- * @param dispatcher The coroutine dispatcher for executing intents (default: Dispatchers.Default)
  */
 abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S,
     savedStateHandle: SavedStateHandle? = null,
     stateKey: String = "mvi_state",
-    debugMode: Boolean = false,
-    dispatcher: CoroutineDispatcher = Dispatchers.Default
+    debugMode: Boolean = false
 ) : ViewModel(), MviContainerHost<S, I, E>, MviViewModelMarker {
 
-    @PublishedApi
-    internal val _container: MviContainer<S, I, E> = container(
-        initialState = savedStateHandle?.get<S>(stateKey) ?: initialState,
-        scope = viewModelScope,
-        debugMode = debugMode,
-        dispatcher = dispatcher
-    )
+    /**
+     * Dispatcher for intent execution.
+     *
+     * **Production usage:**
+     * Do NOT override in production code. The default (Dispatchers.Main.immediate) is appropriate
+     * for most cases. Use withContext(Dispatchers.IO) or withContext(Dispatchers.Default)
+     * inside handlers for IO/computation operations.
+     *
+     * **Test usage:**
+     * Override this property in test ViewModels to inject TestDispatcher for deterministic testing.
+     *
+     * Example:
+     * ```
+     * // Production - use default (no override needed)
+     * class MyViewModel : MviViewModel<S, I, E>(...)
+     *
+     * // Test - override dispatcher
+     * class TestViewModel(
+     *     private val testDispatcher: TestDispatcher
+     * ) : MviViewModel<S, I, E>(...) {
+     *     override val dispatcher = testDispatcher
+     * }
+     * ```
+     */
+    protected open val dispatcher: CoroutineDispatcher
+        get() = Dispatchers.Main.immediate
 
-    init {
-        // Automatically save state when it changes (requires S to be Parcelable)
-        savedStateHandle?.let { handle ->
+    @PublishedApi
+    internal val _container: MviContainer<S, I, E> by lazy {
+        // Validate Parcelable requirement before creating container
+        savedStateHandle?.let {
             require(initialState is Parcelable) {
                 "State must implement Parcelable when using SavedStateHandle. " +
                 "Use @Parcelize annotation on your ViewState data class."
             }
+        }
 
-            viewModelScope.launch {
-                _container.state.collect { state ->
-                    handle[stateKey] = state
+        container<S, I, E>(
+            initialState = savedStateHandle?.get<S>(stateKey) ?: initialState,
+            scope = viewModelScope,
+            debugMode = debugMode,
+            dispatcher = dispatcher
+        ).also { cont ->
+            // Automatically save state when it changes
+            savedStateHandle?.let { handle ->
+                viewModelScope.launch {
+                    cont.state.collect { currentState ->
+                        handle[stateKey] = currentState
+                    }
                 }
             }
         }
