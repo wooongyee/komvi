@@ -72,6 +72,18 @@ internal class HandlerValidator(private val logger: KSPLogger) {
             return false
         }
 
+        // Get parameter type
+        val param = params.first()
+        val paramType = param.type.resolve().declaration as? KSClassDeclaration
+
+        if (paramType == null) {
+            logger.error(
+                "Handler '${function.simpleName.asString()}' parameter type cannot be resolved",
+                function
+            )
+            return false
+        }
+
         // Get ViewAction and Internal interfaces from Intent
         val viewActionInterface = intentClass.declarations
             .filterIsInstance<KSClassDeclaration>()
@@ -83,37 +95,32 @@ internal class HandlerValidator(private val logger: KSPLogger) {
 
         val viewActionIntents = viewActionInterface?.getSealedSubclasses()?.toList() ?: emptyList()
         val internalIntents = internalInterface?.getSealedSubclasses()?.toList() ?: emptyList()
+        val allIntents = viewActionIntents + internalIntents
 
-        // Extract intent name from handler name: handleEmailChanged -> EmailChanged
-        val handlerName = function.simpleName.asString()
-        val intentName = handlerName.removePrefix("handle")
+        // Check if parameter type is one of the Intent subclasses
+        val isValidIntentType = allIntents.any { it.qualifiedName == paramType.qualifiedName }
 
-        // Find matching intent
-        val matchingIntent = (viewActionIntents + internalIntents).find {
-            it.simpleName.asString() == intentName
-        }
-
-        if (matchingIntent == null) {
+        if (!isValidIntentType) {
             logger.error(
-                "Handler '$handlerName' does not match any Intent subclass",
+                "Handler '${function.simpleName.asString()}' parameter must be a subclass of ${intentClass.simpleName.asString()}",
                 function
             )
             return false
         }
 
         // Validate handler annotation matches intent type
-        val isViewActionIntent = viewActionIntents.contains(matchingIntent)
-        val isInternalIntent = internalIntents.contains(matchingIntent)
+        val isViewActionIntent = viewActionIntents.any { it.qualifiedName == paramType.qualifiedName }
+        val isInternalIntent = internalIntents.any { it.qualifiedName == paramType.qualifiedName }
 
         if (isViewAction && isInternalIntent) {
             logger.error(
-                "@ViewActionHandler function '$handlerName' cannot handle Internal intent '$intentName'",
+                "@ViewActionHandler cannot handle Internal intent '${paramType.simpleName.asString()}'",
                 function
             )
             return false
         } else if (!isViewAction && isViewActionIntent) {
             logger.error(
-                "@InternalHandler function '$handlerName' cannot handle ViewAction intent '$intentName'",
+                "@InternalHandler cannot handle ViewAction intent '${paramType.simpleName.asString()}'",
                 function
             )
             return false
@@ -138,18 +145,23 @@ internal class HandlerValidator(private val logger: KSPLogger) {
         val internalIntents = internalInterface?.getSealedSubclasses()?.toList() ?: emptyList()
         val allIntents = viewActionIntents + internalIntents
 
-        val handlerNames = handlers.map { it.function.simpleName.asString() }.toSet()
+        // Get handled intent types from handler parameters
+        val handledIntentTypes = handlers.mapNotNull { handler ->
+            val param = handler.function.parameters.firstOrNull()
+            val paramType = param?.type?.resolve()?.declaration as? KSClassDeclaration
+            paramType?.qualifiedName
+        }.toSet()
 
         var hasError = false
 
         // Check each Intent has a handler
         allIntents.forEach { intent ->
             val intentName = intent.simpleName.asString()
-            val expectedHandlerName = "handle$intentName"
+            val intentQualifiedName = intent.qualifiedName
 
-            if (!handlerNames.contains(expectedHandlerName)) {
+            if (!handledIntentTypes.contains(intentQualifiedName)) {
                 logger.error(
-                    "Missing handler for Intent '$intentName'. Expected function: $expectedHandlerName",
+                    "Missing handler for Intent '$intentName'",
                     intent
                 )
                 hasError = true

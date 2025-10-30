@@ -80,15 +80,19 @@ internal class DispatchCodeGenerator(
             .apply {
                 handlers.forEach { handlerInfo ->
                     val function = handlerInfo.function
-                    val subclassName = function.simpleName.asString().removePrefix("handle")
                     val handlerName = function.simpleName.asString()
+
+                    // Get Intent type from parameter
+                    val param = function.parameters.firstOrNull()
+                    val paramType = param?.type?.resolve()?.declaration as? KSClassDeclaration
+                    val intentSubclassName = paramType?.simpleName?.asString() ?: return@forEach
 
                     val log = handlerInfo.annotation.arguments
                         .find { it.name?.asString() == "log" }?.value as? Boolean ?: false
                     val measurePerformance = handlerInfo.annotation.arguments
                         .find { it.name?.asString() == "measurePerformance" }?.value as? Boolean ?: false
 
-                    beginControlFlow("is $intentName.ViewAction.$subclassName ->")
+                    beginControlFlow("is $intentName.ViewAction.$intentSubclassName ->")
 
                     if (log) {
                         addStatement("android.util.Log.d(%S, %S + intent)", viewModelName, "Intent received: ")
@@ -131,15 +135,19 @@ internal class DispatchCodeGenerator(
             .apply {
                 handlers.forEach { handlerInfo ->
                     val function = handlerInfo.function
-                    val subclassName = function.simpleName.asString().removePrefix("handle")
                     val handlerName = function.simpleName.asString()
+
+                    // Get Intent type from parameter
+                    val param = function.parameters.firstOrNull()
+                    val paramType = param?.type?.resolve()?.declaration as? KSClassDeclaration
+                    val intentSubclassName = paramType?.simpleName?.asString() ?: return@forEach
 
                     val log = handlerInfo.annotation.arguments
                         .find { it.name?.asString() == "log" }?.value as? Boolean ?: false
                     val measurePerformance = handlerInfo.annotation.arguments
                         .find { it.name?.asString() == "measurePerformance" }?.value as? Boolean ?: false
 
-                    beginControlFlow("is $intentName.Internal.$subclassName ->")
+                    beginControlFlow("is $intentName.Internal.$intentSubclassName ->")
 
                     if (log) {
                         addStatement("android.util.Log.d(%S, %S + intent)", viewModelName, "Intent received: ")
