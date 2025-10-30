@@ -18,17 +18,17 @@ class LoginViewModel(
     dispatcher = dispatcher
 ) {
 
-    @ViewActionHandler(log = true)
+    @ViewActionHandler(debug = true)
     internal fun handleEmailChanged(intent: LoginIntent.ViewAction.EmailChanged) = handler {
         reduce { copy(email = intent.email, errorMessage = null) }
     }
 
-    @ViewActionHandler(log = true)
+    @ViewActionHandler(debug = true)
     internal fun handlePasswordChanged(intent: LoginIntent.ViewAction.PasswordChanged) = handler {
         reduce { copy(password = intent.password, errorMessage = null) }
     }
 
-    @ViewActionHandler(log = true, track = true, measurePerformance = true)
+    @ViewActionHandler(debug = true)
     internal fun handleLoginClicked(intent: LoginIntent.ViewAction.LoginClicked) = handler {
         val currentEmail = state.email
         val currentPassword = state.password

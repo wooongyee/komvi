@@ -13,12 +13,12 @@ class ValidTestViewModel : FakeMviViewModel<FakeViewState, FakeIntent, FakeSideE
         // Handler implementation
     }
 
-    @ViewActionHandler(log = true)
+    @ViewActionHandler(debug = true)
     internal fun handleDecrement(intent: FakeIntent.ViewAction.Decrement) = handler {
         // Handler implementation
     }
 
-    @ViewActionHandler(log = true, track = true, measurePerformance = true)
+    @ViewActionHandler(debug = true)
     internal fun handleSetValue(intent: FakeIntent.ViewAction.SetValue) = handler {
         // Handler implementation
     }

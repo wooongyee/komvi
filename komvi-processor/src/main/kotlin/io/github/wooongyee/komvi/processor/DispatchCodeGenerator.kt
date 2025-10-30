@@ -87,23 +87,18 @@ internal class DispatchCodeGenerator(
                     val paramType = param?.type?.resolve()?.declaration as? KSClassDeclaration
                     val intentSubclassName = paramType?.simpleName?.asString() ?: return@forEach
 
-                    val log = handlerInfo.annotation.arguments
-                        .find { it.name?.asString() == "log" }?.value as? Boolean ?: false
-                    val measurePerformance = handlerInfo.annotation.arguments
-                        .find { it.name?.asString() == "measurePerformance" }?.value as? Boolean ?: false
+                    val debug = handlerInfo.annotation.arguments
+                        .find { it.name?.asString() == "debug" }?.value as? Boolean ?: false
 
                     beginControlFlow("is $intentName.ViewAction.$intentSubclassName ->")
 
-                    if (log) {
+                    if (debug) {
                         addStatement("android.util.Log.d(%S, %S + intent)", viewModelName, "Intent received: ")
-                    }
-
-                    if (measurePerformance) {
                         addStatement("val startTime = System.currentTimeMillis()")
                         addStatement("val logicBlock = $handlerName(intent)")
                         addStatement("this.executeHandler(logicBlock)")
                         addStatement("val duration = System.currentTimeMillis() - startTime")
-                        addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Performance: $handlerName took ", "ms")
+                        addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Intent completed: $intentSubclassName (took ", "ms)")
                     } else {
                         addStatement("val logicBlock = $handlerName(intent)")
                         addStatement("this.executeHandler(logicBlock)")
@@ -142,23 +137,18 @@ internal class DispatchCodeGenerator(
                     val paramType = param?.type?.resolve()?.declaration as? KSClassDeclaration
                     val intentSubclassName = paramType?.simpleName?.asString() ?: return@forEach
 
-                    val log = handlerInfo.annotation.arguments
-                        .find { it.name?.asString() == "log" }?.value as? Boolean ?: false
-                    val measurePerformance = handlerInfo.annotation.arguments
-                        .find { it.name?.asString() == "measurePerformance" }?.value as? Boolean ?: false
+                    val debug = handlerInfo.annotation.arguments
+                        .find { it.name?.asString() == "debug" }?.value as? Boolean ?: false
 
                     beginControlFlow("is $intentName.Internal.$intentSubclassName ->")
 
-                    if (log) {
+                    if (debug) {
                         addStatement("android.util.Log.d(%S, %S + intent)", viewModelName, "Intent received: ")
-                    }
-
-                    if (measurePerformance) {
                         addStatement("val startTime = System.currentTimeMillis()")
                         addStatement("val logicBlock = $handlerName(intent)")
                         addStatement("this.executeHandler(logicBlock)")
                         addStatement("val duration = System.currentTimeMillis() - startTime")
-                        addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Performance: $handlerName took ", "ms")
+                        addStatement("android.util.Log.d(%S, %S + duration + %S)", viewModelName, "Intent completed: $intentSubclassName (took ", "ms)")
                     } else {
                         addStatement("val logicBlock = $handlerName(intent)")
                         addStatement("this.executeHandler(logicBlock)")

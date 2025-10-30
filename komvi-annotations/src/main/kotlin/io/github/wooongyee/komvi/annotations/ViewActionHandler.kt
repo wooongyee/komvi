@@ -6,14 +6,11 @@ package io.github.wooongyee.komvi.annotations
  * Functions annotated with @ViewActionHandler must process intents that are
  * marked with @ViewAction annotation. The processor will validate this at compile time.
  *
- * @param log Enable logging for this intent handler
- * @param track Enable tracking/analytics for this intent handler
- * @param measurePerformance Enable performance measurement for this intent handler
+ * @param debug Enable debug logging for this intent handler.
+ *              When enabled, logs "Intent received" and "Intent completed" with execution time.
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)
 annotation class ViewActionHandler(
-    val log: Boolean = false,
-    val track: Boolean = false,
-    val measurePerformance: Boolean = false
+    val debug: Boolean = false
 )
