@@ -15,14 +15,14 @@ internal class IntentTypeExtractor(private val logger: KSPLogger) {
     fun extract(viewModelClass: KSClassDeclaration): KSClassDeclaration? {
         val className = viewModelClass.simpleName.asString()
 
-        // Find MviViewModel supertype
+        // Find MviViewModel supertype by checking if it implements MviViewModelMarker
         val mviViewModelType = viewModelClass.superTypes.firstOrNull { superType ->
-            val declaration = superType.resolve().declaration
-            declaration.qualifiedName?.asString() == ClassNames.MVI_VIEW_MODEL
+            val declaration = superType.resolve().declaration as? KSClassDeclaration
+            declaration?.let { checkIfImplementsMarker(it) } ?: false
         }
 
         if (mviViewModelType == null) {
-            logger.warn("$className does not extend MviViewModel")
+            logger.warn("$className does not extend MviViewModel (must implement MviViewModelMarker)")
             return null
         }
 
@@ -48,5 +48,30 @@ internal class IntentTypeExtractor(private val logger: KSPLogger) {
 
         logger.info("Extracted Intent type: ${intentClass.simpleName.asString()} from $className")
         return intentClass
+    }
+
+    /**
+     * Recursively checks if a class declaration implements MviViewModelMarker
+     */
+    private fun checkIfImplementsMarker(declaration: KSClassDeclaration): Boolean {
+        // Check if this class itself is the marker
+        if (declaration.qualifiedName?.asString() == ClassNames.MVI_VIEW_MODEL_MARKER) {
+            return true
+        }
+
+        // Check if this class directly implements the marker
+        val implementsMarker = declaration.superTypes.any { superType ->
+            superType.resolve().declaration.qualifiedName?.asString() == ClassNames.MVI_VIEW_MODEL_MARKER
+        }
+
+        if (implementsMarker) {
+            return true
+        }
+
+        // Recursively check superclasses
+        return declaration.superTypes.any { superType ->
+            val superDeclaration = superType.resolve().declaration as? KSClassDeclaration
+            superDeclaration?.let { checkIfImplementsMarker(it) } ?: false
+        }
     }
 }

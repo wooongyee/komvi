@@ -36,11 +36,11 @@ internal class DispatchCodeGenerator(
         val internalHandlers = handlers.filter { !it.isViewAction }
 
         val viewActionDispatch = generateViewActionDispatch(
-            viewModelClass, intentName, viewActionHandlers
+            viewModelClass, intentClass, viewActionHandlers
         )
 
         val internalDispatch = generateInternalDispatch(
-            viewModelClass, intentName, internalHandlers
+            viewModelClass, intentClass, internalHandlers
         )
 
         val fileSpec = FileSpec.builder(packageName, "${viewModelName}_Dispatch")
@@ -63,13 +63,14 @@ internal class DispatchCodeGenerator(
 
     private fun generateViewActionDispatch(
         viewModelClass: KSClassDeclaration,
-        intentName: String,
+        intentClass: KSClassDeclaration,
         handlers: List<HandlerInfo>
     ): FunSpec {
         val viewModelClassName = viewModelClass.toClassName()
         val viewModelName = viewModelClass.simpleName.asString()
-        val packageName = viewModelClass.packageName.asString()
-        val viewActionTypeName = ClassName(packageName, "$intentName.ViewAction")
+        val intentPackageName = intentClass.packageName.asString()
+        val intentName = intentClass.simpleName.asString()
+        val viewActionTypeName = ClassName(intentPackageName, intentName, "ViewAction")
 
         return FunSpec.builder("dispatch")
             .receiver(viewModelClassName)
@@ -113,13 +114,14 @@ internal class DispatchCodeGenerator(
 
     private fun generateInternalDispatch(
         viewModelClass: KSClassDeclaration,
-        intentName: String,
+        intentClass: KSClassDeclaration,
         handlers: List<HandlerInfo>
     ): FunSpec {
         val viewModelClassName = viewModelClass.toClassName()
         val viewModelName = viewModelClass.simpleName.asString()
-        val packageName = viewModelClass.packageName.asString()
-        val internalTypeName = ClassName(packageName, "$intentName.Internal")
+        val intentPackageName = intentClass.packageName.asString()
+        val intentName = intentClass.simpleName.asString()
+        val internalTypeName = ClassName(intentPackageName, intentName, "Internal")
 
         return FunSpec.builder("dispatch")
             .receiver(viewModelClassName)

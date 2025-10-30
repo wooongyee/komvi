@@ -52,11 +52,11 @@ class ViewModelProcessor(
         functions: List<KSFunctionDeclaration>
     ) {
         val className = viewModelClass.simpleName.asString()
-        logger.info("Processing ViewModel: $className")
+        logger.info("Processing ViewModel: $className with ${functions.size} handler(s)")
 
         // 1. Collect handlers via visitor
         val visitor = ViewModelVisitor()
-        viewModelClass.accept(visitor, Unit)
+        functions.forEach { it.accept(visitor, Unit) }
 
         if (visitor.handlers.isEmpty()) {
             logger.warn("No handlers found in $className")

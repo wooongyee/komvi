@@ -9,6 +9,7 @@ import io.github.wooongyee.komvi.core.Intent
 import io.github.wooongyee.komvi.core.IntentScope
 import io.github.wooongyee.komvi.core.MviContainer
 import io.github.wooongyee.komvi.core.MviContainerHost
+import io.github.wooongyee.komvi.core.MviViewModelMarker
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
 import io.github.wooongyee.komvi.core.container
@@ -46,7 +47,7 @@ abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     stateKey: String = "mvi_state",
     debugMode: Boolean = false,
     dispatcher: CoroutineDispatcher = Dispatchers.Default
-) : ViewModel(), MviContainerHost<S, I, E> {
+) : ViewModel(), MviContainerHost<S, I, E>, MviViewModelMarker {
 
     @PublishedApi
     internal val _container: MviContainer<S, I, E> = container(

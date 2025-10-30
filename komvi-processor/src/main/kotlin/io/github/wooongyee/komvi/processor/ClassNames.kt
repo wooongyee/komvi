@@ -5,6 +5,7 @@ package io.github.wooongyee.komvi.processor
  */
 internal object ClassNames {
     const val MVI_VIEW_MODEL = "io.github.wooongyee.komvi.android.MviViewModel"
+    const val MVI_VIEW_MODEL_MARKER = "io.github.wooongyee.komvi.core.MviViewModelMarker"
     const val INTENT_SCOPE = "io.github.wooongyee.komvi.core.IntentScope"
     const val VIEW_STATE = "io.github.wooongyee.komvi.core.ViewState"
     const val INTENT = "io.github.wooongyee.komvi.core.Intent"

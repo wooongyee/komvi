@@ -18,7 +18,7 @@ internal data class ValidationResult(
  * Validates handler functions against MVI pattern rules.
  *
  * Validation rules:
- * - Handler visibility must be private or internal
+ * - Handler visibility must not be private (public/internal allowed)
  * - Handler must have exactly 1 parameter
  * - Parameter type must match handler annotation (ViewAction vs Internal)
  * - All Intent subclasses must have corresponding handlers
@@ -47,9 +47,10 @@ internal class HandlerValidator(private val logger: KSPLogger) {
 
     private fun validateVisibility(function: KSFunctionDeclaration): Boolean {
         val visibility = function.getVisibility()
-        if (visibility == Visibility.PUBLIC) {
+        if (visibility == Visibility.PRIVATE) {
             logger.error(
-                "@IntentHandler function '${function.simpleName.asString()}' must be private or internal, not public",
+                "Handler '${function.simpleName.asString()}' must not be private. " +
+                "Private handlers cannot be accessed from generated dispatch extension functions.",
                 function
             )
             return false
