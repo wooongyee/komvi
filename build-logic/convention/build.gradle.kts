@@ -40,5 +40,13 @@ gradlePlugin {
             id = "komvi.kover"
             implementationClass = "KoverConventionPlugin"
         }
+        register("kotlinLibraryPublishing") {
+            id = "komvi.kotlin.library.publishing"
+            implementationClass = "KotlinLibraryPublishingConventionPlugin"
+        }
+        register("androidLibraryPublishing") {
+            id = "komvi.android.library.publishing"
+            implementationClass = "AndroidLibraryPublishingConventionPlugin"
+        }
     }
 }

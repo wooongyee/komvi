@@ -1,5 +1,6 @@
 plugins {
     id("komvi.kotlin.library")
+    id("komvi.kotlin.library.publishing")
     id("komvi.kover")
 }
 
