@@ -45,7 +45,7 @@ class LoginViewModelSideEffectTest {
 
     @Test
     fun sideEffects_emittedInCorrectOrder() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
         val effects = mutableListOf<LoginSideEffect>()
 
         val job = launch {
@@ -71,7 +71,7 @@ class LoginViewModelSideEffectTest {
 
     @Test
     fun sideEffects_errorFlow_emitsToast() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
         val effects = mutableListOf<LoginSideEffect>()
 
         val job = launch {
@@ -94,7 +94,7 @@ class LoginViewModelSideEffectTest {
 
     @Test
     fun sideEffects_multipleCollectors_allReceive() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
         val effects1 = mutableListOf<LoginSideEffect>()
         val effects2 = mutableListOf<LoginSideEffect>()
 
@@ -124,7 +124,7 @@ class LoginViewModelSideEffectTest {
 
     @Test
     fun sideEffects_lateSubscriber_doesNotReceivePrevious() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Emit side effect BEFORE subscribing
         viewModel.dispatch(LoginIntent.Internal.OnLoginSuccess)
@@ -145,7 +145,7 @@ class LoginViewModelSideEffectTest {
 
     @Test
     fun sideEffects_lateSubscriber_receivesNewEffects() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Emit side effect BEFORE subscribing
         viewModel.dispatch(LoginIntent.Internal.OnLoginSuccess)
@@ -173,7 +173,7 @@ class LoginViewModelSideEffectTest {
 
     @Test
     fun sideEffects_multipleCalls_allEmitted() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
         val effects = mutableListOf<LoginSideEffect>()
 
         val job = launch {
@@ -211,7 +211,7 @@ class LoginViewModelSideEffectTest {
 
     @Test
     fun sideEffects_asyncLoginFlow_emittedAfterCompletion() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
         val effects = mutableListOf<LoginSideEffect>()
 
         val job = launch {
@@ -243,7 +243,7 @@ class LoginViewModelSideEffectTest {
 
     @Test
     fun sideEffects_duplicates_allEmitted() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
         val effects = mutableListOf<LoginSideEffect>()
 
         val job = launch {
