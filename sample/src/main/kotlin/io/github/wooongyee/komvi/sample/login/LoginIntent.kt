@@ -21,5 +21,6 @@ sealed interface LoginIntent : Intent {
     sealed interface Internal : LoginIntent {
         data object OnLoginSuccess : Internal
         data class OnLoginFailure(val error: String) : Internal
+        data class ValidateEmail(val email: String) : Internal
     }
 }

@@ -14,6 +14,6 @@ package io.github.wooongyee.komvi.annotations
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)
 annotation class ViewActionHandler(
-    val debug: Boolean = false,
+    val debug: Boolean = true,
     val executionMode: ExecutionMode = ExecutionMode.PARALLEL
 )

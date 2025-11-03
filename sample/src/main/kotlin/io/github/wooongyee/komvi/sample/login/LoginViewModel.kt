@@ -2,6 +2,7 @@ package io.github.wooongyee.komvi.sample.login
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.wooongyee.komvi.android.MviViewModel
+import io.github.wooongyee.komvi.annotations.ExecutionMode
 import io.github.wooongyee.komvi.annotations.ViewActionHandler
 import io.github.wooongyee.komvi.annotations.InternalHandler
 import kotlinx.coroutines.delay
@@ -16,7 +17,10 @@ class LoginViewModel(
 
     @ViewActionHandler(debug = true)
     internal fun handleEmailChanged(intent: LoginIntent.ViewAction.EmailChanged) = handler {
-        reduce { copy(email = intent.email, errorMessage = null) }
+        reduce { copy(email = intent.email, emailValid = null, emailValidating = false, errorMessage = null) }
+        if (intent.email.isNotBlank()) {
+            dispatch(LoginIntent.Internal.ValidateEmail(intent.email))
+        }
     }
 
     @ViewActionHandler(debug = true)
@@ -24,7 +28,17 @@ class LoginViewModel(
         reduce { copy(password = intent.password, errorMessage = null) }
     }
 
-    @ViewActionHandler(debug = true)
+    // CANCEL_PREVIOUS: Debounce email validation to avoid redundant server calls
+    @InternalHandler(debug = true, executionMode = ExecutionMode.CANCEL_PREVIOUS)
+    internal fun handleValidateEmail(intent: LoginIntent.Internal.ValidateEmail) = handler {
+        reduce { copy(emailValidating = true) }
+        delay(300) // Simulate server API call
+        val isValid = !intent.email.contains("test") // Simulate: "test" emails already exist
+        reduce { copy(emailValidating = false, emailValid = isValid) }
+    }
+
+    // DROP: Prevent duplicate login attempts
+    @ViewActionHandler(debug = true, executionMode = ExecutionMode.DROP)
     internal fun handleLoginClicked(intent: LoginIntent.ViewAction.LoginClicked) = handler {
         val currentEmail = state.email
         val currentPassword = state.password

@@ -1,7 +1,9 @@
 package io.github.wooongyee.komvi.processor.fixtures
 
+import io.github.wooongyee.komvi.core.ConsoleLogger
 import io.github.wooongyee.komvi.core.Intent
 import io.github.wooongyee.komvi.core.IntentScope
+import io.github.wooongyee.komvi.core.KomviLogger
 import io.github.wooongyee.komvi.core.MviViewModelMarker
 import io.github.wooongyee.komvi.core.SideEffect
 import io.github.wooongyee.komvi.core.ViewState
@@ -43,6 +45,8 @@ sealed interface FakeIntent : Intent {
  * Implements MviViewModelMarker so the processor can recognize it.
  */
 abstract class FakeMviViewModel<S : ViewState, I : Intent, E : SideEffect> : MviViewModelMarker {
+
+    val logger: KomviLogger = ConsoleLogger()
 
     /**
      * DSL helper function for defining intent handlers (mimics the real MviViewModel).

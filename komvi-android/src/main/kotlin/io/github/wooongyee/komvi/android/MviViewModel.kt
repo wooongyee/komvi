@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.wooongyee.komvi.annotations.InternalKomviApi
 import io.github.wooongyee.komvi.core.Intent
 import io.github.wooongyee.komvi.core.IntentScope
+import io.github.wooongyee.komvi.core.KomviLogger
 import io.github.wooongyee.komvi.core.MviContainer
 import io.github.wooongyee.komvi.core.MviContainerHost
 import io.github.wooongyee.komvi.core.MviViewModelMarker
@@ -41,12 +42,14 @@ import kotlinx.coroutines.launch
  * @param savedStateHandle Optional SavedStateHandle for state persistence (requires S to be Parcelable)
  * @param stateKey Key for saving state in SavedStateHandle (default: "mvi_state")
  * @param debugMode Enable debug logging for state changes (default: false, use BuildConfig.DEBUG in production)
+ * @param logger Logger implementation for intent logging (default: AndroidLogger)
  */
 abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S,
     savedStateHandle: SavedStateHandle? = null,
     stateKey: String = "mvi_state",
-    debugMode: Boolean = false
+    debugMode: Boolean = false,
+    val logger: KomviLogger = AndroidLogger()
 ) : ViewModel(), MviContainerHost<S, I, E>, MviViewModelMarker {
 
     /**
