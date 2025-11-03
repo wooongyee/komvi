@@ -2,7 +2,7 @@ plugins {
     id("komvi.android.library")
     id("komvi.android.library.publishing")
     id("komvi.kover")
-    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -19,11 +19,8 @@ android {
 
 dependencies {
     api(project(":komvi-core"))
+    api(platform(libs.androidx.compose.bom))
+    api(libs.androidx.compose.runtime)
+    api(libs.androidx.compose.ui)
 
-    api(platform(libs.compose.bom))
-    api(libs.compose.runtime)
-    api(libs.compose.ui)
-    api(libs.lifecycle.runtime.compose)
-
-    // No tests needed - simple wrapper functions
 }

@@ -16,12 +16,12 @@ android {
 dependencies {
     api(project(":komvi-core"))
     api(project(":komvi-annotations"))
-    api(libs.lifecycle.viewmodel.ktx)
-    api(libs.lifecycle.viewmodel.savedstate)
+    api(libs.androidx.lifecycle.viewmodel.ktx)
+    api(libs.androidx.lifecycle.viewmodel.savedstate)
     api(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.turbine)
-    testImplementation(libs.lifecycle.runtime.testing)
+    testImplementation(libs.androidx.lifecycle.runtime.testing)
 }

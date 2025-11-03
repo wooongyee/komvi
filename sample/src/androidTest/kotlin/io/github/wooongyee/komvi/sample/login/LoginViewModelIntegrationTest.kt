@@ -47,7 +47,7 @@ class LoginViewModelIntegrationTest {
 
     @Test
     fun successfulLogin_withValidCredentials() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Enter valid credentials
         viewModel.dispatch(LoginIntent.ViewAction.EmailChanged("test@example.com"))
@@ -70,7 +70,7 @@ class LoginViewModelIntegrationTest {
 
     @Test
     fun loginFails_withEmptyFields() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Click login without entering credentials
         viewModel.dispatch(LoginIntent.ViewAction.LoginClicked)
@@ -84,7 +84,7 @@ class LoginViewModelIntegrationTest {
 
     @Test
     fun loginFails_withInvalidCredentials() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Enter invalid credentials
         viewModel.dispatch(LoginIntent.ViewAction.EmailChanged("wrong@example.com"))
@@ -105,7 +105,7 @@ class LoginViewModelIntegrationTest {
 
     @Test
     fun emailChange_updatesStateAndClearsError() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Trigger error first
         viewModel.dispatch(LoginIntent.ViewAction.LoginClicked)
@@ -122,7 +122,7 @@ class LoginViewModelIntegrationTest {
 
     @Test
     fun passwordChange_updatesStateAndClearsError() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Trigger error first
         viewModel.dispatch(LoginIntent.ViewAction.LoginClicked)

@@ -76,7 +76,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun viewActionDispatch_callsCorrectHandler() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Dispatch ViewAction.EmailChanged
         viewModel.dispatch(LoginIntent.ViewAction.EmailChanged("test@example.com"))
@@ -88,7 +88,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun viewActionDispatch_withMultipleActions() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Dispatch multiple ViewActions
         viewModel.dispatch(LoginIntent.ViewAction.EmailChanged("user@test.com"))
@@ -104,7 +104,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun internalDispatch_callsCorrectHandler() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Dispatch Internal intent
         viewModel.dispatch(LoginIntent.Internal.OnLoginSuccess)
@@ -116,7 +116,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun internalDispatch_withError() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Dispatch Internal.OnLoginFailure
         viewModel.dispatch(LoginIntent.Internal.OnLoginFailure("Invalid credentials"))
@@ -131,7 +131,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun loggingAnnotation_worksWithAndroidLog() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // These actions have log=true
         // We can't easily verify android.util.Log in tests, but we verify the code compiles
@@ -149,7 +149,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun performanceMeasurement_worksWithoutErrors() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // LoginClicked has measurePerformance=true
         // We verify it executes without errors
@@ -164,7 +164,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun allViewActions_haveHandlers() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Test all ViewAction intents can be dispatched
         // If a handler is missing, compilation would fail
@@ -183,7 +183,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun allInternalIntents_haveHandlers() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Test all Internal intents can be dispatched
         viewModel.dispatch(LoginIntent.Internal.OnLoginSuccess)
@@ -199,7 +199,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun dispatchFunction_handlesAllBranches() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // The generated dispatch function should handle all sealed subclasses
         // This verifies the when expression is exhaustive
@@ -229,7 +229,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun complexFlow_viewActionToInternalDispatch() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // ViewAction handler can dispatch Internal intents
         viewModel.dispatch(LoginIntent.ViewAction.EmailChanged("test@example.com"))
@@ -252,7 +252,7 @@ class GeneratedCodeIntegrationTest {
 
     @Test
     fun complexFlow_errorHandling() = runTest {
-        val viewModel = LoginViewModel(testDispatcher)
+        val viewModel = LoginViewModel()
 
         // Empty fields should trigger error
         viewModel.dispatch(LoginIntent.ViewAction.LoginClicked)
