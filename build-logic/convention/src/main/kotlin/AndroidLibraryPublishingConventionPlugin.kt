@@ -21,15 +21,17 @@ class AndroidLibraryPublishingConventionPlugin : Plugin<Project> {
                 from(extensions.getByType(LibraryExtension::class.java).sourceSets["main"].java.srcDirs)
             }
 
-            extensions.configure<PublishingExtension> {
-                publications {
-                    create<MavenPublication>("release") {
-                        from(components["release"])
-                        artifact(sourcesJar)
+            afterEvaluate {
+                extensions.configure<PublishingExtension> {
+                    publications {
+                        create<MavenPublication>("release") {
+                            from(components["release"])
+                            artifact(sourcesJar)
 
-                        groupId = property("library.group").toString()
-                        artifactId = project.name
-                        version = property("library.version").toString()
+                            groupId = property("library.group").toString()
+                            artifactId = project.name
+                            version = property("library.version").toString()
+                        }
                     }
                 }
             }
