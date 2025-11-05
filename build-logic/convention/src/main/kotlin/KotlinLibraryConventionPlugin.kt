@@ -1,4 +1,4 @@
-import io.github.wooongyee.komvi.buildlogic.configureKotlinJvm
+import com.github.wooongyee.komvi.buildlogic.configureKotlinJvm
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 

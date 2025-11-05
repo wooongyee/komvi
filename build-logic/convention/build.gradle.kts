@@ -3,7 +3,7 @@ plugins {
     `kotlin-dsl`
 }
 
-group = "io.github.wooongyee.komvi.buildlogic"
+group = "com.github.wooongyee.komvi.buildlogic"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
