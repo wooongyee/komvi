@@ -176,6 +176,24 @@ class GeneratedCodeIntegrationTest {
         assertEquals("LoginViewModel should have debugMode=true by default", true, viewModel2.debugMode)
     }
 
+    @Test
+    fun viewModel_worksWithoutSavedStateHandle() = runTest {
+        // Create ViewModel without any parameters (no SavedStateHandle)
+        val viewModel = LoginViewModel()
+
+        // Dispatch actions
+        viewModel.dispatch(LoginIntent.ViewAction.EmailChanged("no-handle@test.com"))
+        advanceUntilIdle()
+
+        viewModel.dispatch(LoginIntent.ViewAction.PasswordChanged("password123"))
+        advanceUntilIdle()
+
+        // Verify state updates work correctly
+        assertEquals("no-handle@test.com", viewModel.state.value.email)
+        assertEquals("password123", viewModel.state.value.password)
+        assertEquals(true, viewModel.debugMode) // Default debugMode
+    }
+
     /**
      * Mock logger for testing logging behavior
      */
