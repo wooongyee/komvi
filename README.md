@@ -142,10 +142,20 @@ Control how concurrent intents are handled:
 
 ### Debug Mode
 ```kotlin
-MviViewModel(
-    initialState = State(),
-    debugMode = true  // Enable logging
+// Logging enabled by default
+class MyViewModel : MviViewModel(
+    initialState = State()
 )
+
+// Disable logging
+class MyViewModel : MviViewModel(
+    initialState = State(),
+    debugMode = false
+)
+
+// Control per-handler logging
+@ViewActionHandler(log = true)  // Logs when debugMode is true
+internal fun handleAction(intent: MyIntent.Action) = handler { ... }
 ```
 
 ### SavedStateHandle Integration

@@ -142,10 +142,20 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
 
 ### 디버그 모드
 ```kotlin
-MviViewModel(
-    initialState = State(),
-    debugMode = true  // 로깅 활성화
+// 기본적으로 로깅 활성화
+class MyViewModel : MviViewModel(
+    initialState = State()
 )
+
+// 로깅 비활성화
+class MyViewModel : MviViewModel(
+    initialState = State(),
+    debugMode = false
+)
+
+// 핸들러별 로깅 제어
+@ViewActionHandler(log = true)  // debugMode가 true일 때 로그 출력
+internal fun handleAction(intent: MyIntent.Action) = handler { ... }
 ```
 
 ### SavedStateHandle 통합

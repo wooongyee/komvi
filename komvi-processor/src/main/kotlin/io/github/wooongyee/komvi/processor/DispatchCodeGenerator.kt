@@ -87,15 +87,17 @@ internal class DispatchCodeGenerator(
                     val paramType = param?.type?.resolve()?.declaration as? KSClassDeclaration
                     val intentSubclassName = paramType?.simpleName?.asString() ?: return@forEach
 
-                    val debug = handlerInfo.annotation.arguments
-                        .find { it.name?.asString() == "debug" }?.value as? Boolean ?: false
+                    val log = handlerInfo.annotation.arguments
+                        .find { it.name?.asString() == "log" }?.value as? Boolean ?: false
                     val executionMode = handlerInfo.executionMode
                     val handlerKey = "$viewModelName.$intentSubclassName"
 
                     beginControlFlow("is $intentName.ViewAction.$intentSubclassName ->")
 
-                    if (debug) {
+                    if (log) {
+                        beginControlFlow("if (this.debugMode)")
                         addStatement("this.logger.debug(%S, %S + intent)", viewModelName, "Intent received: ")
+                        endControlFlow()
                     }
                     addStatement("val logicBlock = $handlerName(intent)")
                     addStatement("this.executeHandler(logicBlock, %S, %S)", executionMode, handlerKey)
@@ -133,15 +135,17 @@ internal class DispatchCodeGenerator(
                     val paramType = param?.type?.resolve()?.declaration as? KSClassDeclaration
                     val intentSubclassName = paramType?.simpleName?.asString() ?: return@forEach
 
-                    val debug = handlerInfo.annotation.arguments
-                        .find { it.name?.asString() == "debug" }?.value as? Boolean ?: false
+                    val log = handlerInfo.annotation.arguments
+                        .find { it.name?.asString() == "log" }?.value as? Boolean ?: false
                     val executionMode = handlerInfo.executionMode
                     val handlerKey = "$viewModelName.$intentSubclassName"
 
                     beginControlFlow("is $intentName.Internal.$intentSubclassName ->")
 
-                    if (debug) {
+                    if (log) {
+                        beginControlFlow("if (this.debugMode)")
                         addStatement("this.logger.debug(%S, %S + intent)", viewModelName, "Intent received: ")
+                        endControlFlow()
                     }
                     addStatement("val logicBlock = $handlerName(intent)")
                     addStatement("this.executeHandler(logicBlock, %S, %S)", executionMode, handlerKey)

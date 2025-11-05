@@ -11,11 +11,10 @@ class LoginViewModel(
     savedStateHandle: SavedStateHandle? = null
 ) : MviViewModel<LoginViewState, LoginIntent, LoginSideEffect>(
     initialState = LoginViewState(),
-    savedStateHandle = savedStateHandle,
-    debugMode = true
+    savedStateHandle = savedStateHandle
 ) {
 
-    @ViewActionHandler(debug = true)
+    @ViewActionHandler(log = true)
     internal fun handleEmailChanged(intent: LoginIntent.ViewAction.EmailChanged) = handler {
         reduce { copy(email = intent.email, emailValid = null, emailValidating = false, errorMessage = null) }
         if (intent.email.isNotBlank()) {
@@ -23,13 +22,13 @@ class LoginViewModel(
         }
     }
 
-    @ViewActionHandler(debug = true)
+    @ViewActionHandler(log = true)
     internal fun handlePasswordChanged(intent: LoginIntent.ViewAction.PasswordChanged) = handler {
         reduce { copy(password = intent.password, errorMessage = null) }
     }
 
     // CANCEL_PREVIOUS: Debounce email validation to avoid redundant server calls
-    @InternalHandler(debug = true, executionMode = ExecutionMode.CANCEL_PREVIOUS)
+    @InternalHandler(log = true, executionMode = ExecutionMode.CANCEL_PREVIOUS)
     internal fun handleValidateEmail(intent: LoginIntent.Internal.ValidateEmail) = handler {
         reduce { copy(emailValidating = true) }
         delay(300) // Simulate server API call
@@ -38,7 +37,7 @@ class LoginViewModel(
     }
 
     // DROP: Prevent duplicate login attempts
-    @ViewActionHandler(debug = true, executionMode = ExecutionMode.DROP)
+    @ViewActionHandler(log = true, executionMode = ExecutionMode.DROP)
     internal fun handleLoginClicked(intent: LoginIntent.ViewAction.LoginClicked) = handler {
         val currentEmail = state.email
         val currentPassword = state.password
