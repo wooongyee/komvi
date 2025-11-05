@@ -9,7 +9,6 @@ package io.github.wooongyee.komvi.annotations
  * @param log Enable logging for this intent handler.
  *            When enabled and ViewModel's debugMode is true, logs "Intent received: [intent]".
  * @param executionMode Execution mode for this handler (coroutine execution strategy).
- *                      핸들러의 실행 모드 (코루틴 실행 전략).
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)

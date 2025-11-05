@@ -8,8 +8,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Strategy for executing intent handlers with different coroutine execution policies.
- *
- * 코루틴 실행 전략을 정의하는 인터페이스입니다.
  */
 interface IntentExecutionStrategy {
     /**

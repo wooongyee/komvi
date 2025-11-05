@@ -2,8 +2,6 @@ package io.github.wooongyee.komvi.annotations
 
 /**
  * Defines coroutine execution strategy for intent handler.
- *
- * Intent 핸들러의 코루틴 실행 전략을 정의합니다.
  */
 enum class ExecutionMode {
     /**
