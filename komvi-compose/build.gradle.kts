@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.wooongyee.komvi.compose"
+    namespace = "com.github.wooongyee.komvi.compose"
 
     defaultConfig {
         consumerProguardFiles("consumer-rules.pro")

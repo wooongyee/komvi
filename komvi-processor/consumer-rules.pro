@@ -5,4 +5,4 @@
 }
 
 # Keep annotation processor related classes
--keep class io.github.wooongyee.komvi.annotations.** { *; }
+-keep class com.github.wooongyee.komvi.annotations.** { *; }
