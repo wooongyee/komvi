@@ -10,25 +10,25 @@
 [<a href="README.md">English</a>] [<a href="README_ko.md">한국어</a>]
 </p>
 
-Kotlin MVI library for Android that minimizes boilerplate through KSP code generation and guides architectural best practices at compile-time.
+KSP 코드 생성을 통해 보일러플레이트를 최소화하고, 컴파일 타임에 MVI 아키텍처 패턴을 가이드하는 Kotlin 라이브러리입니다.
 
-## Why Komvi?
+## Komvi를 선택하는 이유
 
-**Clear Intent Separation** – Distinguishes `ViewAction` (from View) and `Internal` (from ViewModel) intents, making data flow immediately traceable.
+**명확한 Intent 분리** – `ViewAction` (View에서 발생)과 `Internal` (ViewModel에서 발생)로 구분하여 데이터 흐름을 쉽게 추적할 수 있습니다.
 
-**Compile-Time Safety** – KSP validates your MVI architecture at build time, catching handler mismatches and visibility violations before runtime.
+**컴파일 타임 안정성** – KSP가 빌드 시점에 MVI 아키텍처를 검증하여, 핸들러 불일치나 가시성 문제를 런타임 전에 잡아냅니다.
 
-**Minimal Boilerplate** – Annotate your handlers with `@ViewActionHandler` or `@InternalHandler`, and Komvi generates the entire dispatch logic.
+**최소한의 보일러플레이트** – 핸들러에 `@ViewActionHandler` 또는 `@InternalHandler` 어노테이션만 추가하면, Komvi가 dispatch 로직을 자동 생성합니다.
 
-**Built for Android** – Integrates with ViewModel, SavedStateHandle, and Hilt/Dagger for production-ready apps.
+**Android에 최적화** – ViewModel, SavedStateHandle, Hilt/Dagger와 통합되어 프로덕션 앱 개발에 바로 사용할 수 있습니다.
 
-## Installation
+## 설치
 
-**Requirements:** Kotlin 2.1.21+ | KSP 2.1.21-2.0.2+ | minSdk 24+
+**요구사항:** Kotlin 2.1.21+ | KSP 2.1.21-2.0.2+ | minSdk 24+
 
-> **Note**: Komvi is primarily designed for **Jetpack Compose**. View-only usage has not been tested.
+> **참고**: Komvi는 기본적으로 **Jetpack Compose** 환경을 위해 설계되었습니다. View만 사용하는 환경은 테스트되지 않았습니다.
 
-Add JitPack repository in `settings.gradle.kts`:
+`settings.gradle.kts`에 JitPack 저장소를 추가하세요:
 
 ```kotlin
 dependencyResolutionManagement {
@@ -40,7 +40,7 @@ dependencyResolutionManagement {
 }
 ```
 
-Add dependencies in your app module's `build.gradle.kts`:
+앱 모듈의 `build.gradle.kts`에 의존성을 추가하세요:
 
 ```kotlin
 plugins {
@@ -56,17 +56,17 @@ dependencies {
 
 ## Quick Start
 
-### 1. Define MVI Contract
+### 1. MVI Contract 정의
 
 ```kotlin
 sealed interface LoginIntent : Intent {
-    // ViewAction: Dispatched from View (recommended pattern for annotation matching)
+    // ViewAction: View에서 호출 (어노테이션 매칭을 위해 권장되는 패턴)
     sealed interface ViewAction : LoginIntent {
         data class EmailChanged(val email: String) : ViewAction
         data object LoginClicked : ViewAction
     }
 
-    // Internal: Dispatched from ViewModel only
+    // Internal: ViewModel 내부에서만 호출
     sealed interface Internal : LoginIntent {
         data object OnLoginSuccess : Internal
         data class OnLoginFailure(val error: String) : Internal
@@ -84,34 +84,34 @@ sealed interface LoginSideEffect : SideEffect {
 }
 ```
 
-### 2. Create ViewModel
+### 2. ViewModel 작성
 
 ```kotlin
 class LoginViewModel : MviViewModel<LoginViewState, LoginIntent, LoginSideEffect>(
     initialState = LoginViewState()
 ) {
-    // Annotate handlers
+    // 핸들러에 어노테이션 추가
     @ViewActionHandler
     internal fun handleEmailChanged(intent: LoginIntent.ViewAction.EmailChanged) = handler {
-        reduce { copy(email = intent.email) }  // Update state
+        reduce { copy(email = intent.email) }  // 상태 업데이트
     }
 
     @ViewActionHandler(executionMode = ExecutionMode.DROP)
     internal fun handleLoginClicked(intent: LoginIntent.ViewAction.LoginClicked) = handler {
         reduce { copy(isLoading = true) }
-        // API call...
-        dispatch(LoginIntent.Internal.OnLoginSuccess)  // Dispatch internal intent
+        // API 호출...
+        dispatch(LoginIntent.Internal.OnLoginSuccess)  // 내부 Intent 전달
     }
 
     @InternalHandler
     internal fun handleOnLoginSuccess(intent: LoginIntent.Internal.OnLoginSuccess) = handler {
         reduce { copy(isLoading = false) }
-        postSideEffect(LoginSideEffect.NavigateToHome)  // Emit side effect
+        postSideEffect(LoginSideEffect.NavigateToHome)  // SideEffect 발행
     }
 }
 ```
 
-### 3. Use in Compose
+### 3. Compose에서 사용하기
 
 ```kotlin
 @Composable
@@ -131,42 +131,42 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
 }
 ```
 
-## Features
+## 주요 기능
 
-### ExecutionMode Strategies
-Control how concurrent intents are handled:
-- `DROP` - Drop new while running (prevent duplicate clicks)
-- `CANCEL_PREVIOUS` - Cancel previous, run latest (debounce search)
-- `QUEUE` - Execute sequentially
-- `PARALLEL` - Run all concurrently (default)
+### ExecutionMode 전략
+동시 Intent 처리 방식 제어:
+- `DROP` - 실행 중이면 새 요청 무시 (중복 클릭 방지)
+- `CANCEL_PREVIOUS` - 이전 요청 취소하고 최신 요청 실행 (검색 디바운스)
+- `QUEUE` - 순차적으로 실행
+- `PARALLEL` - 동시 실행 (기본값)
 
-### Debug Mode
+### 디버그 모드
 ```kotlin
-// Logging enabled by default
+// 기본적으로 로깅 활성화
 class MyViewModel : MviViewModel(
     initialState = State()
 )
 
-// Disable logging
+// 로깅 비활성화
 class MyViewModel : MviViewModel(
     initialState = State(),
     debugMode = false
 )
 
-// Control per-handler logging
-@ViewActionHandler(log = true)  // Logs when debugMode is true
+// 핸들러별 로깅 제어
+@ViewActionHandler(log = true)  // debugMode가 true일 때 로그 출력
 internal fun handleAction(intent: MyIntent.Action) = handler { ... }
 ```
 
-### SavedStateHandle Integration
+### SavedStateHandle 통합
 ```kotlin
 class MyViewModel(savedStateHandle: SavedStateHandle) : MviViewModel(
     initialState = State(),
-    savedStateHandle = savedStateHandle  // Survives process death
+    savedStateHandle = savedStateHandle  // Process death 복원
 )
 ```
 
-### Hilt Integration
+### Hilt 통합
 ```kotlin
 @HiltViewModel
 class MyViewModel @Inject constructor(
@@ -174,11 +174,11 @@ class MyViewModel @Inject constructor(
 ) : MviViewModel(...)
 ```
 
-## Sample App
+## 샘플 앱
 
-For complete examples, see the **[sample app](sample/)**.
+더 많은 예제는 **[샘플 앱](sample/)**을 참고하세요.
 
-## License
+## 라이센스
 
 ```
 Copyright 2025 wooongyee

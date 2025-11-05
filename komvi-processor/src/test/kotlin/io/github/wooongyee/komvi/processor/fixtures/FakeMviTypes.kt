@@ -46,6 +46,7 @@ sealed interface FakeIntent : Intent {
  */
 abstract class FakeMviViewModel<S : ViewState, I : Intent, E : SideEffect> : MviViewModelMarker {
 
+    val debugMode: Boolean = true
     val logger: KomviLogger = ConsoleLogger()
 
     /**

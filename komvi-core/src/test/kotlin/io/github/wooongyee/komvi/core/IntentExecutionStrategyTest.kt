@@ -17,23 +17,23 @@ class IntentExecutionStrategyTest {
         val strategy = IntentExecutionStrategies.CancelPrevious()
         val results = mutableListOf<Int>()
 
-        // 첫 번째 실행 (취소될 예정)
+        // First execution (will be cancelled)
         strategy.execute(this, "test") {
             delay(100)
             results.add(1)
         }
 
-        // 50ms 후 두 번째 실행 (첫 번째를 취소하고 실행)
+        // Second execution after 50ms (cancels first and runs)
         advanceTimeBy(50)
         strategy.execute(this, "test") {
             delay(100)
             results.add(2)
         }
 
-        // 모든 코루틴 완료 대기
+        // Wait for all coroutines to complete
         advanceUntilIdle()
 
-        // 2만 실행되어야 함 (1은 취소됨)
+        // Only 2 should execute (1 is cancelled)
         assertEquals(listOf(2), results)
     }
 
@@ -42,7 +42,7 @@ class IntentExecutionStrategyTest {
         val strategy = IntentExecutionStrategies.CancelPrevious()
         val results = mutableListOf<String>()
 
-        // 다른 key로 실행
+        // Execute with different keys
         strategy.execute(this, "key1") {
             delay(100)
             results.add("key1")
@@ -55,7 +55,7 @@ class IntentExecutionStrategyTest {
 
         advanceUntilIdle()
 
-        // 둘 다 실행되어야 함
+        // Both should execute
         assertEquals(2, results.size)
         assertTrue(results.contains("key1"))
         assertTrue(results.contains("key2"))
@@ -66,13 +66,13 @@ class IntentExecutionStrategyTest {
         val strategy = IntentExecutionStrategies.Drop()
         val results = mutableListOf<Int>()
 
-        // 첫 번째 실행
+        // First execution
         strategy.execute(this, "test") {
             delay(100)
             results.add(1)
         }
 
-        // 실행 중에 두 번째 시도 (무시되어야 함)
+        // Second attempt while running (should be dropped)
         advanceTimeBy(50)
         strategy.execute(this, "test") {
             delay(100)
@@ -81,7 +81,7 @@ class IntentExecutionStrategyTest {
 
         advanceUntilIdle()
 
-        // 1만 실행되어야 함 (2는 DROP됨)
+        // Only 1 should execute (2 is dropped)
         assertEquals(listOf(1), results)
     }
 
@@ -90,13 +90,13 @@ class IntentExecutionStrategyTest {
         val strategy = IntentExecutionStrategies.Drop()
         val results = mutableListOf<Int>()
 
-        // 첫 번째 실행
+        // First execution
         strategy.execute(this, "test") {
             delay(100)
             results.add(1)
         }
 
-        // 첫 번째 완료 후 두 번째 시도 (성공해야 함)
+        // Second attempt after first completes (should succeed)
         advanceTimeBy(150)
         strategy.execute(this, "test") {
             delay(100)
@@ -105,7 +105,7 @@ class IntentExecutionStrategyTest {
 
         advanceUntilIdle()
 
-        // 둘 다 실행되어야 함
+        // Both should execute
         assertEquals(listOf(1, 2), results)
     }
 
@@ -114,8 +114,8 @@ class IntentExecutionStrategyTest {
         val strategy = IntentExecutionStrategies.Queue()
         val results = mutableListOf<Int>()
 
-        // backgroundScope을 사용하여 Channel 코루틴이 백그라운드에서 실행되도록 함
-        // 3개를 빠르게 추가
+        // Use backgroundScope to run Channel coroutine in background
+        // Add 3 items quickly
         strategy.execute(backgroundScope, "test") {
             delay(100)
             results.add(1)
@@ -131,10 +131,10 @@ class IntentExecutionStrategyTest {
             results.add(3)
         }
 
-        // 충분한 시간 대기
+        // Wait sufficient time
         advanceTimeBy(350)
 
-        // 순서대로 실행되어야 함
+        // Should execute in order
         assertEquals(listOf(1, 2, 3), results)
     }
 
@@ -143,7 +143,7 @@ class IntentExecutionStrategyTest {
         val strategy = IntentExecutionStrategies.Queue()
         val results = mutableListOf<String>()
 
-        // backgroundScope 사용
+        // Use backgroundScope
         strategy.execute(backgroundScope, "test") {
             delay(200)
             results.add("long")
@@ -159,10 +159,10 @@ class IntentExecutionStrategyTest {
             results.add("medium")
         }
 
-        // 충분한 시간 대기
+        // Wait sufficient time
         advanceTimeBy(400)
 
-        // 실행 시간과 관계없이 순서대로
+        // In order regardless of execution time
         assertEquals(listOf("long", "short", "medium"), results)
     }
 
@@ -171,7 +171,7 @@ class IntentExecutionStrategyTest {
         val strategy = IntentExecutionStrategies.Parallel()
         val results = mutableListOf<Int>()
 
-        // 3개를 동시에 실행
+        // Execute 3 concurrently
         strategy.execute(this, "test") {
             delay(100)
             results.add(1)
@@ -189,7 +189,7 @@ class IntentExecutionStrategyTest {
 
         advanceUntilIdle()
 
-        // 모두 실행되어야 함 (순서는 보장 안됨)
+        // All should execute (order not guaranteed)
         assertEquals(3, results.size)
         assertTrue(results.contains(1))
         assertTrue(results.contains(2))
@@ -213,11 +213,11 @@ class IntentExecutionStrategyTest {
             results.add("fast")
         }
 
-        // fast가 먼저 완료됨 (100ms)
+        // fast completes first (100ms)
         advanceTimeBy(60)
         assertEquals(listOf("fast"), results)
 
-        // slow는 나중에 완료됨 (200ms)
+        // slow completes later (200ms)
         advanceTimeBy(100)
         assertEquals(listOf("fast", "slow"), results)
     }

@@ -41,14 +41,14 @@ import kotlinx.coroutines.launch
  * @param initialState The initial state of the view
  * @param savedStateHandle Optional SavedStateHandle for state persistence (requires S to be Parcelable)
  * @param stateKey Key for saving state in SavedStateHandle (default: "mvi_state")
- * @param debugMode Enable debug logging for state changes (default: false, use BuildConfig.DEBUG in production)
+ * @param debugMode Enable debug logging for intents (default: true). Set to false to disable all logging.
  * @param logger Logger implementation for intent logging (default: AndroidLogger)
  */
 abstract class MviViewModel<S : ViewState, I : Intent, E : SideEffect>(
     initialState: S,
     savedStateHandle: SavedStateHandle? = null,
     stateKey: String = "mvi_state",
-    debugMode: Boolean = false,
+    val debugMode: Boolean = true,
     val logger: KomviLogger = AndroidLogger()
 ) : ViewModel(), MviContainerHost<S, I, E>, MviViewModelMarker {
 

@@ -6,14 +6,13 @@ package io.github.wooongyee.komvi.annotations
  * Functions annotated with @InternalHandler must process intents that are
  * marked with @Internal annotation. The processor will validate this at compile time.
  *
- * @param debug Enable debug logging for this intent handler.
- *              When enabled, logs "Intent received" and "Intent completed" with execution time.
+ * @param log Enable logging for this intent handler.
+ *            When enabled and ViewModel's debugMode is true, logs "Intent received: [intent]".
  * @param executionMode Execution mode for this handler (coroutine execution strategy).
- *                      핸들러의 실행 모드 (코루틴 실행 전략).
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)
 annotation class InternalHandler(
-    val debug: Boolean = true,
+    val log: Boolean = true,
     val executionMode: ExecutionMode = ExecutionMode.PARALLEL
 )

@@ -11,7 +11,8 @@ import com.google.devtools.ksp.symbol.Visibility
  */
 internal data class ValidationResult(
     val isValid: Boolean,
-    val validHandlers: List<HandlerInfo>
+    val validHandlers: List<HandlerInfo>,
+    val errors: List<String> = emptyList()
 )
 
 /**
@@ -30,46 +31,43 @@ internal class HandlerValidator(private val logger: KSPLogger) {
         handlers: List<HandlerInfo>,
         intentClass: KSClassDeclaration
     ): ValidationResult {
-        var hasError = false
+        val errors = mutableListOf<String>()
 
         handlers.forEach { handler ->
-            if (!validateVisibility(handler.function)) hasError = true
-            if (!validateParameters(handler.function, handler.isViewAction, intentClass)) hasError = true
+            validateVisibility(handler.function)?.let { errors.add(it) }
+            validateParameters(handler.function, handler.isViewAction, intentClass)?.let { errors.add(it) }
         }
 
-        if (!validateIntentHandlerMatching(handlers, intentClass)) hasError = true
+        validateIntentHandlerMatching(handlers, intentClass)?.let { errors.addAll(it) }
 
         return ValidationResult(
-            isValid = !hasError,
-            validHandlers = if (!hasError) handlers else emptyList()
+            isValid = errors.isEmpty(),
+            validHandlers = if (errors.isEmpty()) handlers else emptyList(),
+            errors = errors
         )
     }
 
-    private fun validateVisibility(function: KSFunctionDeclaration): Boolean {
+    private fun validateVisibility(function: KSFunctionDeclaration): String? {
         val visibility = function.getVisibility()
         if (visibility == Visibility.PRIVATE) {
-            logger.error(
-                "Handler '${function.simpleName.asString()}' must not be private. " +
-                "Private handlers cannot be accessed from generated dispatch extension functions.",
-                function
-            )
-            return false
+            val message = "Handler '${function.simpleName.asString()}' must not be private. " +
+                "Private handlers cannot be accessed from generated dispatch extension functions."
+            logger.error(message, function)
+            return message
         }
-        return true
+        return null
     }
 
     private fun validateParameters(
         function: KSFunctionDeclaration,
         isViewAction: Boolean,
         intentClass: KSClassDeclaration
-    ): Boolean {
+    ): String? {
         val params = function.parameters
         if (params.size != 1) {
-            logger.error(
-                "Handler '${function.simpleName.asString()}' must have exactly 1 parameter",
-                function
-            )
-            return false
+            val message = "Handler '${function.simpleName.asString()}' must have exactly 1 parameter"
+            logger.error(message, function)
+            return message
         }
 
         // Get parameter type
@@ -77,11 +75,9 @@ internal class HandlerValidator(private val logger: KSPLogger) {
         val paramType = param.type.resolve().declaration as? KSClassDeclaration
 
         if (paramType == null) {
-            logger.error(
-                "Handler '${function.simpleName.asString()}' parameter type cannot be resolved",
-                function
-            )
-            return false
+            val message = "Handler '${function.simpleName.asString()}' parameter type cannot be resolved"
+            logger.error(message, function)
+            return message
         }
 
         // Get ViewAction and Internal interfaces from Intent
@@ -101,11 +97,9 @@ internal class HandlerValidator(private val logger: KSPLogger) {
         val isValidIntentType = allIntents.any { it.qualifiedName == paramType.qualifiedName }
 
         if (!isValidIntentType) {
-            logger.error(
-                "Handler '${function.simpleName.asString()}' parameter must be a subclass of ${intentClass.simpleName.asString()}",
-                function
-            )
-            return false
+            val message = "Handler '${function.simpleName.asString()}' parameter must be a subclass of ${intentClass.simpleName.asString()}"
+            logger.error(message, function)
+            return message
         }
 
         // Validate handler annotation matches intent type
@@ -113,26 +107,22 @@ internal class HandlerValidator(private val logger: KSPLogger) {
         val isInternalIntent = internalIntents.any { it.qualifiedName == paramType.qualifiedName }
 
         if (isViewAction && isInternalIntent) {
-            logger.error(
-                "@ViewActionHandler cannot handle Internal intent '${paramType.simpleName.asString()}'",
-                function
-            )
-            return false
+            val message = "@ViewActionHandler cannot handle Internal intent '${paramType.simpleName.asString()}'"
+            logger.error(message, function)
+            return message
         } else if (!isViewAction && isViewActionIntent) {
-            logger.error(
-                "@InternalHandler cannot handle ViewAction intent '${paramType.simpleName.asString()}'",
-                function
-            )
-            return false
+            val message = "@InternalHandler cannot handle ViewAction intent '${paramType.simpleName.asString()}'"
+            logger.error(message, function)
+            return message
         }
 
-        return true
+        return null
     }
 
     private fun validateIntentHandlerMatching(
         handlers: List<HandlerInfo>,
         intentClass: KSClassDeclaration
-    ): Boolean {
+    ): List<String>? {
         val viewActionInterface = intentClass.declarations
             .filterIsInstance<KSClassDeclaration>()
             .firstOrNull { it.simpleName.asString() == "ViewAction" }
@@ -152,7 +142,7 @@ internal class HandlerValidator(private val logger: KSPLogger) {
             paramType?.qualifiedName
         }.toSet()
 
-        var hasError = false
+        val errors = mutableListOf<String>()
 
         // Check each Intent has a handler
         allIntents.forEach { intent ->
@@ -160,14 +150,12 @@ internal class HandlerValidator(private val logger: KSPLogger) {
             val intentQualifiedName = intent.qualifiedName
 
             if (!handledIntentTypes.contains(intentQualifiedName)) {
-                logger.error(
-                    "Missing handler for Intent '$intentName'",
-                    intent
-                )
-                hasError = true
+                val message = "Missing handler for Intent '$intentName'"
+                logger.error(message, intent)
+                errors.add(message)
             }
         }
 
-        return !hasError
+        return if (errors.isEmpty()) null else errors
     }
 }

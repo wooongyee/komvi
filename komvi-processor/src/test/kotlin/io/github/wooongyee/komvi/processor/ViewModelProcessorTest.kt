@@ -82,7 +82,7 @@ class ViewModelProcessorTest {
 
                     class AnnotatedViewModel : FakeMviViewModel<FakeViewState, FakeIntent, FakeSideEffect>() {
 
-                        @ViewActionHandler(debug = true)
+                        @ViewActionHandler(log = true)
                         internal fun handleIncrement(intent: FakeIntent.ViewAction.Increment) = handler { }
 
                         @ViewActionHandler

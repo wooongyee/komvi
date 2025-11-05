@@ -73,7 +73,19 @@ class ViewModelProcessor(
         // 3. Validate handlers
         val validationResult = handlerValidator.validate(visitor.handlers, intentClass)
         if (!validationResult.isValid) {
-            logger.error("Validation failed for $className, skipping code generation")
+            val viewActionCount = visitor.handlers.count { it.isViewAction }
+            val internalCount = visitor.handlers.count { !it.isViewAction }
+
+            logger.error(
+                "Validation failed for $className:\n" +
+                "  Total handlers: ${visitor.handlers.size} " +
+                "(ViewAction: $viewActionCount, Internal: $internalCount)\n" +
+                "  Errors (${validationResult.errors.size}):"
+            )
+            validationResult.errors.forEach { error ->
+                logger.error("    - $error")
+            }
+            logger.error("Skipping code generation for $className")
             return
         }
 

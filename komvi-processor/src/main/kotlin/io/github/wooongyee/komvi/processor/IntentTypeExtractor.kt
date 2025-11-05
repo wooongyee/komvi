@@ -22,27 +22,45 @@ internal class IntentTypeExtractor(private val logger: KSPLogger) {
         }
 
         if (mviViewModelType == null) {
-            logger.warn("$className does not extend MviViewModel (must implement MviViewModelMarker)")
+            val availableSuperTypes = viewModelClass.superTypes
+                .map { it.resolve().declaration.simpleName.asString() }
+                .joinToString(", ")
+            logger.error(
+                "Cannot extract Intent type for $className:\n" +
+                "  $className does not extend MviViewModel (must implement MviViewModelMarker)\n" +
+                "  Available super types: [$availableSuperTypes]"
+            )
             return null
         }
 
         // Get type arguments: MviViewModel<S, I, E>
         val typeArguments = mviViewModelType.element?.typeArguments
         if (typeArguments == null || typeArguments.size != 3) {
-            logger.warn("MviViewModel should have 3 type arguments (ViewState, Intent, SideEffect)")
+            val actualCount = typeArguments?.size ?: 0
+            logger.error(
+                "Cannot extract Intent type for $className:\n" +
+                "  MviViewModel should have 3 type arguments (ViewState, Intent, SideEffect)\n" +
+                "  Found: $actualCount type argument(s)"
+            )
             return null
         }
 
         // Get Intent type (second type argument, index 1)
         val intentType = typeArguments[1].type?.resolve()
         if (intentType == null) {
-            logger.warn("Cannot resolve Intent type for $className")
+            logger.error(
+                "Cannot extract Intent type for $className:\n" +
+                "  Cannot resolve Intent type (second type argument)"
+            )
             return null
         }
 
         val intentClass = intentType.declaration as? KSClassDeclaration
         if (intentClass == null) {
-            logger.warn("Intent is not a class declaration for $className")
+            logger.error(
+                "Cannot extract Intent type for $className:\n" +
+                "  Intent is not a class declaration (found: ${intentType.declaration})"
+            )
             return null
         }
 
